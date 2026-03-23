@@ -13,7 +13,7 @@ import DetailsForm    from './pages/DetailsForm.jsx'
 import Admin          from './pages/Admin.jsx'
 import AllTemplates   from './pages/AllTemplates.jsx'
 import Organizations  from './pages/Organizations.jsx'
-import IDCardBuilder  from './pages/IDCardBuilder.jsx'
+import IDCardBuilder  from './pages/Idcardbuilder.jsx'
 import Success        from './pages/Success.jsx'
 import About          from './pages/About.jsx'
 
