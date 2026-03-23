@@ -54,6 +54,8 @@ const DEFAULT_CONFIG = {
   fontSize: 'md',
   visibleFields: ['name','class','roll_number','blood_group','contact_number'],
   fieldPositions: {},   // { key: {x,y} }
+  photoPosition: { x: 16, y: 95 },  // draggable photo position
+  photoSize:     72,                 // photo width in px (height = size * 4/3)
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -292,14 +294,18 @@ export default function IDCardBuilder() {
   }
 
   const onPositionChange = useCallback((key, pos) => {
-    setConfig(p => ({
-      ...p,
-      fieldPositions: { ...(p.fieldPositions||{}), [key]: pos }
-    }))
+    if (key === '__photo__') {
+      setConfig(p => ({ ...p, photoPosition: pos }))
+    } else {
+      setConfig(p => ({
+        ...p,
+        fieldPositions: { ...(p.fieldPositions||{}), [key]: pos }
+      }))
+    }
   }, [])
 
   const resetPositions = () => {
-    setConfig(p => ({ ...p, fieldPositions: {} }))
+    setConfig(p => ({ ...p, fieldPositions: {}, photoPosition: { x:16, y:95 }, photoSize: 72 }))
     toast.success('Positions reset to default')
   }
 
@@ -457,7 +463,33 @@ export default function IDCardBuilder() {
                 </div>
 
                 <div style={{ marginBottom:16 }}>
-                  <div style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Photo Shape</div>
+                  <div style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Photo</div>
+
+                  {/* Click to select photo on card */}
+                  <div onClick={() => setSelectedField(selectedField==='__photo__'?null:'__photo__')}
+                    style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 10px', borderRadius:8, border:`1.5px solid ${selectedField==='__photo__'?'var(--blue)':'var(--border)'}`, background:selectedField==='__photo__'?'var(--blue-s)':'var(--paper2)', cursor:'pointer', marginBottom:10, transition:'all .15s' }}>
+                    <span style={{ fontSize:18 }}>🖼</span>
+                    <span style={{ flex:1, fontSize:12, fontWeight:600, color:selectedField==='__photo__'?'var(--blue)':'var(--ink2)' }}>Photo</span>
+                    <span style={{ fontSize:10, color:'var(--ink3)' }}>{config.photoSize||72}×{Math.round((config.photoSize||72)*4/3)}px</span>
+                    <span style={{ fontSize:10, color:selectedField==='__photo__'?'var(--blue)':'var(--ink3)', fontWeight:700 }}>{selectedField==='__photo__'?'✓ Selected':'Click to select'}</span>
+                  </div>
+
+                  {/* Size slider */}
+                  <div style={{ marginBottom:10 }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:5 }}>
+                      <span style={{ fontSize:11, color:'var(--ink3)' }}>Size</span>
+                      <span style={{ fontSize:11, fontFamily:'JetBrains Mono,monospace', color:'var(--blue)', fontWeight:700 }}>{config.photoSize||72}px</span>
+                    </div>
+                    <input type="range" min={40} max={160} step={4} value={config.photoSize||72}
+                      onChange={e => upd('photoSize', Number(e.target.value))}
+                      style={{ width:'100%', accentColor:'var(--blue)' }}/>
+                    <div style={{ display:'flex', justifyContent:'space-between', fontSize:10, color:'var(--ink3)', marginTop:2 }}>
+                      <span>Small (40px)</span><span>Large (160px)</span>
+                    </div>
+                  </div>
+
+                  {/* Shape */}
+                  <div style={{ fontSize:10, color:'var(--ink3)', marginBottom:5 }}>Shape</div>
                   <div style={{ display:'flex', gap:8 }}>
                     {['square','rounded','circle'].map(v => (
                       <button key={v} onClick={() => upd('photoShape',v)}
