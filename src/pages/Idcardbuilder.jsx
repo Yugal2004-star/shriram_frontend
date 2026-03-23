@@ -2,7 +2,7 @@ import { useState, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSubmissions } from '../hooks/useSubmissions'
 import { useOrganizations } from '../hooks/useOrganizations'
-import { useCardTemplates } from '../hooks/useCardTemplates'
+import { useCardTemplates } from '../hooks/useCardtemplates'
 import { Btn, Spinner } from '../components/shared/index'
 import toast from 'react-hot-toast'
 
