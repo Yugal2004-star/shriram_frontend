@@ -320,13 +320,13 @@ export default function IDCardBuilder() {
   )
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', height:'100vh', paddingTop:64, background:'#0f0f1a' }}>
+    <div style={{ display:'flex', flexDirection:'column', height:'100vh', paddingTop:64, background:'var(--paper2)' }}>
 
       {/* ── Top bar ── */}
-      <div style={{ height:54, background:'#1a1a2e', borderBottom:'1px solid rgba(255,255,255,.08)', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 20px', flexShrink:0 }}>
+      <div style={{ height:54, background:'var(--paper)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 20px', flexShrink:0 }}>
         <div style={{ display:'flex', alignItems:'center', gap:14 }}>
           <button onClick={() => navigate(-1)}
-            style={{ background:'rgba(255,255,255,.08)', border:'none', cursor:'pointer', color:'#aaa', fontSize:14, padding:'6px 12px', borderRadius:8, fontFamily:'inherit', fontWeight:600 }}>
+            style={{ background:'var(--paper2)', border:'1px solid var(--border)', cursor:'pointer', color:'var(--ink2)', fontSize:14, padding:'6px 12px', borderRadius:8, fontFamily:'inherit', fontWeight:600 }}>
             ← Back
           </button>
           <input value={templateName} onChange={e => setTemplateName(e.target.value)}
@@ -338,13 +338,13 @@ export default function IDCardBuilder() {
             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
               <span style={{ fontSize:11, color:'#666' }}>Preview:</span>
               <select value={previewIdx} onChange={e => setPreviewIdx(Number(e.target.value))}
-                style={{ padding:'4px 8px', borderRadius:6, border:'1px solid rgba(255,255,255,.1)', background:'#1a1a2e', color:'#ccc', fontSize:12, cursor:'pointer', fontFamily:'inherit' }}>
+                style={{ padding:'4px 8px', borderRadius:6, border:'1px solid var(--border)', background:'var(--paper)', color:'var(--ink)', fontSize:12, cursor:'pointer', fontFamily:'inherit' }}>
                 {approved.map((s,i) => <option key={s.id} value={i}>{s.name}</option>)}
               </select>
             </div>
           )}
           <button onClick={resetPositions}
-            style={{ padding:'6px 12px', borderRadius:8, border:'1px solid rgba(255,255,255,.12)', background:'transparent', color:'#aaa', fontSize:12, cursor:'pointer', fontFamily:'inherit', fontWeight:600 }}>
+            style={{ padding:'6px 12px', borderRadius:8, border:'1px solid var(--border)', background:'transparent', color:'var(--ink2)', fontSize:12, cursor:'pointer', fontFamily:'inherit', fontWeight:600 }}>
             ↺ Reset layout
           </button>
           <button onClick={handleSave} disabled={saving}
@@ -358,13 +358,13 @@ export default function IDCardBuilder() {
       <div style={{ flex:1, display:'grid', gridTemplateColumns:'260px 1fr', overflow:'hidden' }}>
 
         {/* ══ LEFT PANEL ══ */}
-        <div style={{ background:'#1a1a2e', borderRight:'1px solid rgba(255,255,255,.07)', overflowY:'auto', display:'flex', flexDirection:'column' }}>
+        <div style={{ background:'var(--paper)', borderRight:'1px solid var(--border)', overflowY:'auto', display:'flex', flexDirection:'column' }}>
 
           {/* Tabs */}
-          <div style={{ display:'flex', borderBottom:'1px solid rgba(255,255,255,.07)', flexShrink:0 }}>
+          <div style={{ display:'flex', borderBottom:'1px solid var(--border)', flexShrink:0 }}>
             {[['fields','📋 Fields'],['style','🎨 Style'],['settings','⚙ More']].map(([id,label]) => (
               <button key={id} onClick={() => setActiveTab(id)}
-                style={{ flex:1, padding:'11px 4px', border:'none', fontSize:11, fontWeight:700, cursor:'pointer', background:'transparent', color:activeTab===id?'#fff':'#666', borderBottom:activeTab===id?'2px solid #2352ff':'2px solid transparent', fontFamily:'inherit', transition:'all .15s' }}>
+                style={{ flex:1, padding:'11px 4px', border:'none', fontSize:11, fontWeight:700, cursor:'pointer', background:'transparent', color:activeTab===id?'var(--ink)':'var(--ink3)', borderBottom:activeTab===id?'2px solid var(--blue)':'2px solid transparent', fontFamily:'inherit', transition:'all .15s' }}>
                 {label}
               </button>
             ))}
@@ -375,24 +375,24 @@ export default function IDCardBuilder() {
             {/* ── FIELDS TAB ── */}
             {activeTab === 'fields' && (
               <div>
-                <p style={{ fontSize:11, color:'#666', marginBottom:14, lineHeight:1.6 }}>
+                <p style={{ fontSize:11, color:'var(--ink3)', marginBottom:14, lineHeight:1.6 }}>
                   Click to add/remove · Selected field is highlighted on the card · Drag it on the card to position
                 </p>
 
                 {/* Active fields */}
                 {config.visibleFields.length > 0 && (
                   <div style={{ marginBottom:14 }}>
-                    <div style={{ fontSize:10, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Active — click card field to select, then drag</div>
+                    <div style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Active — click card field to select, then drag</div>
                     {ALL_FIELDS.filter(f => config.visibleFields.includes(f.key)).map(f => {
                       const isSelected = selectedField === f.key
                       const pos = config.fieldPositions?.[f.key] || DEFAULT_POSITIONS[f.key] || { x:20, y:200 }
                       return (
                         <div key={f.key}
                           onClick={() => setSelectedField(isSelected ? null : f.key)}
-                          style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', borderRadius:8, border:`1.5px solid ${isSelected?'#2352ff':'rgba(255,255,255,.08)'}`, background:isSelected?'rgba(35,82,255,.15)':'rgba(255,255,255,.04)', cursor:'pointer', marginBottom:5, transition:'all .15s' }}>
+                          style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', borderRadius:8, border:`1.5px solid ${isSelected?'var(--blue)':'var(--border)'}`, background:isSelected?'var(--blue-s)':'var(--paper2)', cursor:'pointer', marginBottom:5, transition:'all .15s' }}>
                           <span style={{ fontSize:14 }}>{f.icon}</span>
-                          <span style={{ flex:1, fontSize:12, fontWeight:600, color:isSelected?'#7da4ff':'#bbb' }}>{f.label}</span>
-                          <span style={{ fontSize:10, color:'#555', fontFamily:'JetBrains Mono,monospace' }}>{pos.x},{pos.y}</span>
+                          <span style={{ flex:1, fontSize:12, fontWeight:600, color:isSelected?'var(--blue)':'var(--ink2)' }}>{f.label}</span>
+                          <span style={{ fontSize:10, color:'var(--ink3)', fontFamily:'JetBrains Mono,monospace' }}>{pos.x},{pos.y}</span>
                           <button onClick={e => { e.stopPropagation(); toggleField(f.key) }}
                             style={{ width:18, height:18, borderRadius:'50%', border:'none', background:'rgba(255,80,80,.2)', color:'#f87', cursor:'pointer', fontSize:11, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                             ✕
@@ -404,15 +404,15 @@ export default function IDCardBuilder() {
                 )}
 
                 {/* Add fields */}
-                <div style={{ fontSize:10, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Add Fields</div>
+                <div style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Add Fields</div>
                 {ALL_FIELDS.filter(f => !config.visibleFields.includes(f.key)).map(f => (
                   <div key={f.key} onClick={() => toggleField(f.key)}
-                    style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', borderRadius:8, border:'1.5px solid rgba(255,255,255,.05)', background:'transparent', cursor:'pointer', marginBottom:5, transition:'all .15s' }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor='rgba(35,82,255,.4)'; e.currentTarget.style.background='rgba(35,82,255,.08)' }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor='rgba(255,255,255,.05)'; e.currentTarget.style.background='transparent' }}>
+                    style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', borderRadius:8, border:'1.5px solid var(--border)', background:'var(--paper)', cursor:'pointer', marginBottom:5, transition:'all .15s' }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor='var(--blue)'; e.currentTarget.style.background='var(--blue-s)' }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor='var(--border)'; e.currentTarget.style.background='var(--paper)' }}>
                     <span style={{ fontSize:14 }}>{f.icon}</span>
-                    <span style={{ flex:1, fontSize:12, color:'#666' }}>{f.label}</span>
-                    <span style={{ fontSize:16, color:'#444' }}>+</span>
+                    <span style={{ flex:1, fontSize:12, color:'var(--ink2)' }}>{f.label}</span>
+                    <span style={{ fontSize:16, color:'var(--ink3)' }}>+</span>
                   </div>
                 ))}
               </div>
@@ -422,34 +422,34 @@ export default function IDCardBuilder() {
             {activeTab === 'style' && (
               <div>
                 <div style={{ marginBottom:16 }}>
-                  <div style={{ fontSize:10, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Organization</div>
+                  <div style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Organization</div>
                   <select value={selectedOrg} onChange={e => setSelectedOrg(e.target.value)}
-                    style={{ width:'100%', padding:'8px 10px', borderRadius:8, border:'1px solid rgba(255,255,255,.1)', background:'rgba(255,255,255,.05)', color:'#ccc', fontSize:12, fontFamily:'inherit', cursor:'pointer', outline:'none' }}>
+                    style={{ width:'100%', padding:'8px 10px', borderRadius:8, border:'1px solid var(--border)', background:'var(--paper)', color:'var(--ink)', fontSize:12, fontFamily:'inherit', cursor:'pointer', outline:'none' }}>
                     <option value="">-- No specific org --</option>
                     {organizations.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
                   </select>
                 </div>
 
                 <div style={{ marginBottom:16 }}>
-                  <div style={{ fontSize:10, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Colors</div>
+                  <div style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Colors</div>
                   {[['Primary',config.c1,v=>upd('c1',v)],['Secondary',config.c2,v=>upd('c2',v)],['Accent BG',config.accent,v=>upd('accent',v)]].map(([l,v,fn])=>(
-                    <div key={l} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'6px 0', borderBottom:'1px solid rgba(255,255,255,.06)' }}>
-                      <span style={{ fontSize:12, color:'#888' }}>{l}</span>
+                    <div key={l} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'6px 0', borderBottom:'1px solid var(--border)' }}>
+                      <span style={{ fontSize:12, color:'var(--ink2)' }}>{l}</span>
                       <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                         <input type="color" value={v} onChange={e=>fn(e.target.value)}
-                          style={{ width:26, height:26, borderRadius:6, border:'1px solid rgba(255,255,255,.15)', padding:2, cursor:'pointer', background:'none' }}/>
-                        <span style={{ fontSize:11, fontFamily:'JetBrains Mono,monospace', color:'#555' }}>{v}</span>
+                          style={{ width:26, height:26, borderRadius:6, border:'1px solid var(--border)', padding:2, cursor:'pointer', background:'none' }}/>
+                        <span style={{ fontSize:11, fontFamily:'JetBrains Mono,monospace', color:'var(--ink3)' }}>{v}</span>
                       </div>
                     </div>
                   ))}
                 </div>
 
                 <div style={{ marginBottom:16 }}>
-                  <div style={{ fontSize:10, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Header Style</div>
+                  <div style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Header Style</div>
                   <div style={{ display:'flex', gap:8 }}>
                     {['gradient','solid'].map(v => (
                       <button key={v} onClick={() => upd('headerStyle',v)}
-                        style={{ flex:1, padding:'8px', borderRadius:8, border:`1.5px solid ${config.headerStyle===v?'#2352ff':'rgba(255,255,255,.1)'}`, background:config.headerStyle===v?'rgba(35,82,255,.2)':'transparent', color:config.headerStyle===v?'#7da4ff':'#666', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit', textTransform:'capitalize' }}>
+                        style={{ flex:1, padding:'8px', borderRadius:8, border:`1.5px solid ${config.headerStyle===v?'var(--blue)':'var(--border)'}`, background:config.headerStyle===v?'var(--blue-s)':'transparent', color:config.headerStyle===v?'var(--blue)':'var(--ink3)', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit', textTransform:'capitalize' }}>
                         {v}
                       </button>
                     ))}
@@ -457,11 +457,11 @@ export default function IDCardBuilder() {
                 </div>
 
                 <div style={{ marginBottom:16 }}>
-                  <div style={{ fontSize:10, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Photo Shape</div>
+                  <div style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Photo Shape</div>
                   <div style={{ display:'flex', gap:8 }}>
                     {['square','rounded','circle'].map(v => (
                       <button key={v} onClick={() => upd('photoShape',v)}
-                        style={{ flex:1, padding:'8px 4px', borderRadius:8, border:`1.5px solid ${config.photoShape===v?'#2352ff':'rgba(255,255,255,.1)'}`, background:config.photoShape===v?'rgba(35,82,255,.2)':'transparent', color:config.photoShape===v?'#7da4ff':'#666', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit', textTransform:'capitalize' }}>
+                        style={{ flex:1, padding:'8px 4px', borderRadius:8, border:`1.5px solid ${config.photoShape===v?'var(--blue)':'var(--border)'}`, background:config.photoShape===v?'var(--blue-s)':'transparent', color:config.photoShape===v?'var(--blue)':'var(--ink3)', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit', textTransform:'capitalize' }}>
                         {v}
                       </button>
                     ))}
@@ -469,11 +469,11 @@ export default function IDCardBuilder() {
                 </div>
 
                 <div style={{ marginBottom:16 }}>
-                  <div style={{ fontSize:10, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Border</div>
+                  <div style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Border</div>
                   <div style={{ display:'flex', gap:8 }}>
                     {['none','thin','thick'].map(v => (
                       <button key={v} onClick={() => upd('borderStyle',v)}
-                        style={{ flex:1, padding:'8px 4px', borderRadius:8, border:`1.5px solid ${config.borderStyle===v?'#2352ff':'rgba(255,255,255,.1)'}`, background:config.borderStyle===v?'rgba(35,82,255,.2)':'transparent', color:config.borderStyle===v?'#7da4ff':'#666', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit', textTransform:'capitalize' }}>
+                        style={{ flex:1, padding:'8px 4px', borderRadius:8, border:`1.5px solid ${config.borderStyle===v?'var(--blue)':'var(--border)'}`, background:config.borderStyle===v?'var(--blue-s)':'transparent', color:config.borderStyle===v?'var(--blue)':'var(--ink3)', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit', textTransform:'capitalize' }}>
                         {v}
                       </button>
                     ))}
@@ -486,22 +486,22 @@ export default function IDCardBuilder() {
             {activeTab === 'settings' && (
               <div>
                 <div style={{ marginBottom:14 }}>
-                  <div style={{ fontSize:10, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Logo Position</div>
+                  <div style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Logo Position</div>
                   <div style={{ display:'flex', gap:8 }}>
                     {['left','center'].map(v => (
                       <button key={v} onClick={() => upd('logoPosition',v)}
-                        style={{ flex:1, padding:'8px', borderRadius:8, border:`1.5px solid ${config.logoPosition===v?'#2352ff':'rgba(255,255,255,.1)'}`, background:config.logoPosition===v?'rgba(35,82,255,.2)':'transparent', color:config.logoPosition===v?'#7da4ff':'#666', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit', textTransform:'capitalize' }}>
+                        style={{ flex:1, padding:'8px', borderRadius:8, border:`1.5px solid ${config.logoPosition===v?'var(--blue)':'var(--border)'}`, background:config.logoPosition===v?'var(--blue-s)':'transparent', color:config.logoPosition===v?'var(--blue)':'var(--ink3)', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit', textTransform:'capitalize' }}>
                         {v}
                       </button>
                     ))}
                   </div>
                 </div>
                 <div style={{ marginBottom:14 }}>
-                  <div style={{ fontSize:10, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Font Size</div>
+                  <div style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', textTransform:'uppercase', letterSpacing:.6, marginBottom:8 }}>Font Size</div>
                   <div style={{ display:'flex', gap:8 }}>
                     {[['sm','Small'],['md','Medium'],['lg','Large']].map(([v,l]) => (
                       <button key={v} onClick={() => upd('fontSize',v)}
-                        style={{ flex:1, padding:'8px 4px', borderRadius:8, border:`1.5px solid ${config.fontSize===v?'#2352ff':'rgba(255,255,255,.1)'}`, background:config.fontSize===v?'rgba(35,82,255,.2)':'transparent', color:config.fontSize===v?'#7da4ff':'#666', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+                        style={{ flex:1, padding:'8px 4px', borderRadius:8, border:`1.5px solid ${config.fontSize===v?'var(--blue)':'var(--border)'}`, background:config.fontSize===v?'var(--blue-s)':'transparent', color:config.fontSize===v?'var(--blue)':'var(--ink3)', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
                         {l}
                       </button>
                     ))}
@@ -509,11 +509,11 @@ export default function IDCardBuilder() {
                 </div>
                 <div>
                   {[['showBarcode','Show Barcode']].map(([k,l]) => (
-                    <div key={k} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0', borderBottom:'1px solid rgba(255,255,255,.06)' }}>
-                      <span style={{ fontSize:12, color:'#888' }}>{l}</span>
+                    <div key={k} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0', borderBottom:'1px solid var(--border)' }}>
+                      <span style={{ fontSize:12, color:'var(--ink2)' }}>{l}</span>
                       <div onClick={() => upd(k,!config[k])}
-                        style={{ width:36, height:20, borderRadius:10, background:config[k]?'#2352ff':'rgba(255,255,255,.15)', transition:'background .2s', cursor:'pointer', position:'relative' }}>
-                        <div style={{ width:16, height:16, borderRadius:'50%', background:'#fff', position:'absolute', top:2, left:config[k]?18:2, transition:'left .2s', boxShadow:'0 1px 3px rgba(0,0,0,.3)' }}/>
+                        style={{ width:36, height:20, borderRadius:10, background:config[k]?'var(--blue)':'var(--border2)', transition:'background .2s', cursor:'pointer', position:'relative' }}>
+                        <div style={{ width:16, height:16, borderRadius:'50%', background:'#fff', position:'absolute', top:2, left:config[k]?18:2, transition:'left .2s', boxShadow:'0 1px 3px rgba(0,0,0,.15)' }}/>
                       </div>
                     </div>
                   ))}
@@ -524,17 +524,17 @@ export default function IDCardBuilder() {
         </div>
 
         {/* ══ CENTER: Card Canvas ══ */}
-        <div style={{ overflowY:'auto', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'32px 24px', gap:20, background:'#0f0f1a' }}
+        <div style={{ overflowY:'auto', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'32px 24px', gap:20, background:'var(--paper2)' }}
           onClick={() => setSelectedField(null)}>
 
           {/* Hint bar */}
-          <div style={{ display:'flex', alignItems:'center', gap:16, background:'rgba(255,255,255,.04)', borderRadius:10, padding:'8px 20px', border:'1px solid rgba(255,255,255,.07)', fontSize:12 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:16, background:'var(--paper)', borderRadius:10, padding:'8px 20px', border:'1px solid var(--border)', fontSize:12 }}>
             <span style={{ color:'#2352ff' }}>●</span>
-            <span style={{ color:'#888' }}>Click a field on the card to select it</span>
-            <span style={{ color:'rgba(255,255,255,.1)' }}>|</span>
-            <span style={{ color:'#888' }}>Drag it anywhere on the card</span>
-            <span style={{ color:'rgba(255,255,255,.1)' }}>|</span>
-            <span style={{ color:'#888' }}>Add/remove fields from the left panel</span>
+            <span style={{ color:'var(--ink3)' }}>Click a field on the card to select it</span>
+            <span style={{ color:'var(--border)' }}>|</span>
+            <span style={{ color:'var(--ink3)' }}>Drag it anywhere on the card</span>
+            <span style={{ color:'var(--border)' }}>|</span>
+            <span style={{ color:'var(--ink3)' }}>Add/remove fields from the left panel</span>
           </div>
 
           {/* The card canvas */}
@@ -551,14 +551,14 @@ export default function IDCardBuilder() {
 
           {/* No submissions warning */}
           {approved.length === 0 && (
-            <div style={{ padding:'10px 18px', background:'rgba(250,200,0,.08)', borderRadius:8, border:'1px solid rgba(250,200,0,.2)', fontSize:12, color:'#b8943c', fontWeight:600 }}>
+            <div style={{ padding:'10px 18px', background:'var(--amber-s)', borderRadius:8, border:'1px solid #fcd34d', fontSize:12, color:'#92400e', fontWeight:600 }}>
               ⚠ No approved submissions — preview shows placeholder data
             </div>
           )}
 
           {/* Selected field info */}
           {selectedField && (
-            <div style={{ padding:'10px 18px', background:'rgba(35,82,255,.1)', borderRadius:8, border:'1px solid rgba(35,82,255,.3)', fontSize:12, color:'#7da4ff', fontWeight:600 }}>
+            <div style={{ padding:'10px 18px', background:'var(--blue-s)', borderRadius:8, border:'1px solid var(--blue-m)', fontSize:12, color:'var(--blue)', fontWeight:600 }}>
               ✦ {ALL_FIELDS.find(f=>f.key===selectedField)?.label} selected — drag it on the card to reposition
             </div>
           )}
