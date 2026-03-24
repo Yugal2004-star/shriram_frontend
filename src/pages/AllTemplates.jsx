@@ -125,10 +125,7 @@ export default function AllTemplates() {
             )
           })}
 
-          <button onClick={()=>navigate('/card-builder')}
-            style={{ width:'100%', padding:'10px 8px', borderRadius:'var(--r)', border:'1.5px dashed var(--blue-m)', background:'var(--blue-s)', color:'var(--blue)', fontSize:12, fontWeight:700, cursor:'pointer', marginTop:4, fontFamily:'inherit' }}>
-            + Create New Template
-          </button>
+
         </div>
 
         {/* ── Center: Cards ── */}
@@ -151,6 +148,10 @@ export default function AllTemplates() {
             <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:10 }}>
 <span style={{ fontSize:13, color:'var(--ink3)', fontWeight:600 }}>{filtered.length} cards</span>
               <Badge type={filtered.length > 0 ? 'teal' : 'gray'}>{filtered.length} approved</Badge>
+              <button onClick={() => navigate('/card-builder')}
+                style={{ padding:'8px 14px', borderRadius:'var(--r)', border:'1.5px dashed var(--blue-m)', background:'var(--blue-s)', color:'var(--blue)', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }}>
+                + Create New Template
+              </button>
             </div>
           </div>
 
