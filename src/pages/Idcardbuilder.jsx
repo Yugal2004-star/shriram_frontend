@@ -56,6 +56,7 @@ const DEFAULT_CONFIG = {
   c2:             '#1538d4',
   accent:         '#e8ecff',
   photoShape:     'rounded',
+  showHeader:     true,
   showBarcode:    true,
   headerStyle:    'gradient',
   logoPosition:   'left',
@@ -146,25 +147,27 @@ function CardCanvas({ config, sub, orgName, onMove, selected, onSelect }) {
       )}
 
       {/* ── Header ── */}
-      <div style={{ position:'relative', zIndex:1, background:headerBg,
-        height:headerH, display:'flex', alignItems:'center', gap:12, padding:'0 16px',
-        justifyContent:config.logoPosition==='center'?'center':'flex-start',
-        flexDirection:config.logoPosition==='center'?'column':'row' }}>
-        <div style={{ width:40, height:40, borderRadius:10,
-          background:'rgba(255,255,255,.22)', display:'flex', alignItems:'center',
-          justifyContent:'center', fontFamily:'Outfit,sans-serif', fontWeight:900,
-          fontSize:14, color:'#fff', flexShrink:0 }}>
-          {(orgName || sub?.school_name || 'SC').slice(0,2).toUpperCase()}
-        </div>
-        <div style={{ textAlign:config.logoPosition==='center'?'center':'left' }}>
-          <div style={{ fontFamily:'Outfit,sans-serif', fontSize:12, fontWeight:800, color:'#fff', lineHeight:1.3 }}>
-            {orgName || sub?.school_name || 'Organization Name'}
+      {config.showHeader !== false && (
+        <div style={{ position:'relative', zIndex:1, background:headerBg,
+          height:headerH, display:'flex', alignItems:'center', gap:12, padding:'0 16px',
+          justifyContent:config.logoPosition==='center'?'center':'flex-start',
+          flexDirection:config.logoPosition==='center'?'column':'row' }}>
+          <div style={{ width:40, height:40, borderRadius:10,
+            background:'rgba(255,255,255,.22)', display:'flex', alignItems:'center',
+            justifyContent:'center', fontFamily:'Outfit,sans-serif', fontWeight:900,
+            fontSize:14, color:'#fff', flexShrink:0 }}>
+            {(orgName || sub?.school_name || 'SC').slice(0,2).toUpperCase()}
           </div>
-          <div style={{ fontSize:9, color:'rgba(255,255,255,.75)', marginTop:2 }}>
-            {sub?.role||'Student'} Identity Card
+          <div style={{ textAlign:config.logoPosition==='center'?'center':'left' }}>
+            <div style={{ fontFamily:'Outfit,sans-serif', fontSize:12, fontWeight:800, color:'#fff', lineHeight:1.3 }}>
+              {orgName || sub?.school_name || 'Organization Name'}
+            </div>
+            <div style={{ fontSize:9, color:'rgba(255,255,255,.75)', marginTop:2 }}>
+              {sub?.role||'Student'} Identity Card
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* ── Photo ── */}
       <div onMouseDown={e => startDrag(e,'__photo__',px,py)}
@@ -708,10 +711,26 @@ export default function IDCardBuilder() {
                     ))}
                   </div>
                 </div>
+                {/* Show Header toggle */}
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0', borderBottom:'1px solid var(--border)' }}>
-                  <span style={{ fontSize:12, color:'var(--ink2)' }}>Show Barcode</span>
+                  <div>
+                    <div style={{ fontSize:12, color:'var(--ink2)', fontWeight:600 }}>Show Header</div>
+                    <div style={{ fontSize:10, color:'var(--ink3)', marginTop:1 }}>College name, logo & role</div>
+                  </div>
+                  <div onClick={()=>upd('showHeader',!(config.showHeader!==false))}
+                    style={{ width:38, height:22, borderRadius:11, background:config.showHeader!==false?'var(--blue)':'var(--border2)', transition:'background .2s', cursor:'pointer', position:'relative', flexShrink:0 }}>
+                    <div style={{ width:18, height:18, borderRadius:'50%', background:'#fff', position:'absolute', top:2, left:config.showHeader!==false?18:2, transition:'left .2s', boxShadow:'0 1px 3px rgba(0,0,0,.2)' }}/>
+                  </div>
+                </div>
+
+                {/* Show Barcode toggle */}
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0', borderBottom:'1px solid var(--border)' }}>
+                  <div>
+                    <div style={{ fontSize:12, color:'var(--ink2)', fontWeight:600 }}>Show Barcode</div>
+                    <div style={{ fontSize:10, color:'var(--ink3)', marginTop:1 }}>Footer barcode strip</div>
+                  </div>
                   <div onClick={()=>upd('showBarcode',!config.showBarcode)}
-                    style={{ width:38, height:22, borderRadius:11, background:config.showBarcode?'var(--blue)':'var(--border2)', transition:'background .2s', cursor:'pointer', position:'relative' }}>
+                    style={{ width:38, height:22, borderRadius:11, background:config.showBarcode?'var(--blue)':'var(--border2)', transition:'background .2s', cursor:'pointer', position:'relative', flexShrink:0 }}>
                     <div style={{ width:18, height:18, borderRadius:'50%', background:'#fff', position:'absolute', top:2, left:config.showBarcode?18:2, transition:'left .2s', boxShadow:'0 1px 3px rgba(0,0,0,.2)' }}/>
                   </div>
                 </div>

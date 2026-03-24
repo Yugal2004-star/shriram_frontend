@@ -120,7 +120,8 @@ const IDCard = forwardRef(function IDCard(
               pointerEvents:'none' }}/>
           )}
 
-          {/* Header */}
+          {/* Header — hidden if showHeader is false */}
+          {c.showHeader !== false && (
           <div style={{ position:'relative', zIndex:1,
             background:     headerBg,
             height:         CW > CH ? 64 : 80,
@@ -154,6 +155,7 @@ const IDCard = forwardRef(function IDCard(
             </div>
           </div>
 
+          )}
           {/* Photo — exact position + size from builder */}
           <div style={{
             position:     'absolute',
