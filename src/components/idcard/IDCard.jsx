@@ -66,6 +66,10 @@ const IDCard = forwardRef(function IDCard(
     const c2           = c.c2     || '#1538d4'
     const accent       = c.accent || '#e8ecff'
 
+    /* Card dimensions from saved config */
+    const CW = c.cardW || 340
+    const CH = c.cardH || 480
+
     const headerBg     = c.headerStyle === 'gradient'
       ? `linear-gradient(135deg,${c1},${c2})` : c1
 
@@ -95,8 +99,8 @@ const IDCard = forwardRef(function IDCard(
           id={`card-${sub.id}`}
           style={{
             position:     'relative',
-            width:        340,
-            height:       480,
+            width:        CW,
+            height:       CH,
             background:   '#fff',
             borderRadius: 16,
             overflow:     'hidden',
@@ -105,10 +109,21 @@ const IDCard = forwardRef(function IDCard(
             fontFamily:   'Instrument Sans,sans-serif',
           }}>
 
+          {/* Background image */}
+          {c.bgImage && (
+            <div style={{ position:'absolute', inset:0, zIndex:0,
+              backgroundImage:`url(${c.bgImage})`,
+              backgroundSize: c.bgFit === 'repeat' ? 'auto' : (c.bgFit || 'cover'),
+              backgroundRepeat: c.bgFit === 'repeat' ? 'repeat' : 'no-repeat',
+              backgroundPosition:'center',
+              opacity: c.bgOpacity ?? 0.15,
+              pointerEvents:'none' }}/>
+          )}
+
           {/* Header */}
-          <div style={{
+          <div style={{ position:'relative', zIndex:1,
             background:     headerBg,
-            height:         80,
+            height:         CW > CH ? 64 : 80,
             display:        'flex',
             alignItems:     'center',
             gap:            12,
@@ -144,6 +159,7 @@ const IDCard = forwardRef(function IDCard(
             position:     'absolute',
             left:         px,
             top:          py,
+            zIndex:       10,
             width:        pw,
             height:       ph,
             borderRadius: photoRadius,
@@ -168,7 +184,7 @@ const IDCard = forwardRef(function IDCard(
             return (
               <div key={f.key} style={{
                 position:'absolute', left:pos.x, top:pos.y,
-                padding:'2px 6px',
+                padding:'2px 6px', zIndex:8,
               }}>
                 <div style={{ fontSize:8, fontWeight:700, color:'#bbb',
                   textTransform:'uppercase', letterSpacing:.4 }}>{f.label}</div>
@@ -181,7 +197,7 @@ const IDCard = forwardRef(function IDCard(
           {/* Barcode */}
           {c.showBarcode !== false && (
             <div style={{
-              position:'absolute', bottom:0, left:0, right:0,
+              position:'absolute', bottom:0, left:0, right:0, zIndex:5,
               background:`${c1}12`, padding:'8px 16px',
               display:'flex', justifyContent:'space-between', alignItems:'center',
               borderTop:`1px solid ${c1}22`,
