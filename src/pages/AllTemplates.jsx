@@ -74,7 +74,7 @@ export default function AllTemplates() {
 
   return (
     <div className="anim-fade-up" style={{ paddingTop:80, minHeight:'100vh' }}>
-      <div style={{ display:'grid', gridTemplateColumns:'180px 1fr 150px', minHeight:'calc(100vh - 64px)' }}>
+      <div style={{ display:'grid', gridTemplateColumns:'200px 1fr 160px', minHeight:'calc(100vh - 64px)' }}>
 
         {/* ── Left: Template selector ── */}
         <div style={{ background:'var(--paper)', borderRight:'1px solid var(--border)', padding:'20px 12px', overflowY:'auto' }}>
@@ -132,7 +132,7 @@ export default function AllTemplates() {
         </div>
 
         {/* ── Center: Cards ── */}
-        <div style={{ padding:24, background:'var(--paper2)', overflowY:'auto' }}>
+        <div style={{ padding:24, background:'var(--paper2)', overflowY:'auto', overflowX:'hidden' }}>
           {/* Toolbar */}
           <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:22, flexWrap:'wrap' }}>
             <button onClick={() => navigate(-1)}
@@ -157,19 +157,20 @@ export default function AllTemplates() {
           {filtered.length === 0 ? (
             <EmptyState icon="🪪" title="No approved cards yet" desc="Approve submissions in the Admin panel to see ID cards here." action={<Btn onClick={() => window.history.back()}>← Go to Admin</Btn>} />
           ) : (
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:20 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(360px,1fr))', gap:28 }}>
               {filtered.map(sub => (
-                <IDCard
-                  key={sub.id}
-                  ref={el => cardRefs.current[sub.id] = el}
-                  submission={sub}
-                  templateId={customTemplate ? null : templateId}
-                  customConfig={customTemplate?.config || null}
-                  orgLogo={organizations.find(o => o.name === sub.school_name)?.logo_url || null}
-                  showActions
-                  onDownload={() => downloadCard(sub)}
-                  onDelete={() => setDeleteId(sub.id)}
-                />
+                <div key={sub.id} style={{ display:'flex', justifyContent:'center' }}>
+                  <IDCard
+                    ref={el => cardRefs.current[sub.id] = el}
+                    submission={sub}
+                    templateId={customTemplate ? null : templateId}
+                    customConfig={customTemplate?.config || null}
+                    orgLogo={organizations.find(o => o.name === sub.school_name)?.logo_url || null}
+                    showActions
+                    onDownload={() => downloadCard(sub)}
+                    onDelete={() => setDeleteId(sub.id)}
+                  />
+                </div>
               ))}
             </div>
           )}
