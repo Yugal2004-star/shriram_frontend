@@ -215,8 +215,14 @@ function CropModal({ open, imageUrl, onDone, onClose }) {
 
   return (
     <Modal open={open} onClose={onClose} title="📷 Crop Your Photo" width={640}>
+      <style>{`
+        .crop-modal-grid { display: grid; grid-template-columns: 1fr 220px; gap: 16px; align-items: start; }
+        @media (max-width: 600px) {
+          .crop-modal-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
       {/* ── Single screen: left = image, right = controls ── */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 220px', gap:16, alignItems:'start' }}>
+      <div className="crop-modal-grid">
 
         {/* ── LEFT: Image area ── */}
         <div style={{ position:'relative', background:'#111', borderRadius:10, overflow:'hidden', height:300, userSelect:'none' }}>
@@ -578,8 +584,18 @@ export default function DetailsForm() {
           </div>
 
           <div style={{ padding:'28px' }}>
+            <style>{`
+              .df-fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+              .df-confirm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+              .df-modal-confirm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+              @media (max-width: 600px) {
+                .df-fields-grid { grid-template-columns: 1fr !important; gap: 14px !important; }
+                .df-confirm-grid { grid-template-columns: 1fr !important; }
+                .df-modal-confirm-grid { grid-template-columns: 1fr !important; }
+              }
+            `}</style>
             {!isConfirmStep && !isPhotoStep && (
-              <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:18 }}>
+              <div className="df-fields-grid">
                 {currentStepFields.map(f=><RenderField key={f} f={f} formData={formData} errors={errors} update={update}/>)}
               </div>
             )}
@@ -629,16 +645,7 @@ export default function DetailsForm() {
                       <div style={{ fontSize:13,color:'var(--ink3)',marginTop:3 }}>{config.role} · {config.school_name}</div>
                     </div>
                   </div>
-                  <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:10 }}>
-                    {Object.entries(formData).filter(([,v])=>v&&v.trim?.()).map(([k,v])=>{
-                      const meta=FIELD_META[k]; if(!meta) return null
-                      return (
-                        <div key={k} style={{ background:'var(--paper)',borderRadius:8,padding:'9px 12px',border:'1px solid var(--border)' }}>
-                          <div style={{ fontSize:10,fontWeight:700,color:'var(--ink3)',textTransform:'uppercase',letterSpacing:.4 }}>{meta.label}</div>
-                          <div style={{ fontSize:13,fontWeight:600,color:'var(--ink)',marginTop:2 }}>{v}</div>
-                        </div>
-                      )
-                    })}
+                  <div className="df-confirm-grid">
                   </div>
                 </div>
                 <div style={{ display:'flex',alignItems:'center',gap:10,background:'var(--blue-s)',borderRadius:'var(--r)',padding:'10px 14px',marginBottom:18,fontSize:12,color:'var(--blue)',fontWeight:600 }}>
@@ -688,16 +695,7 @@ export default function DetailsForm() {
               <div style={{ fontSize:12,color:'var(--ink3)',marginTop:3 }}>{config.role} · {config.school_name}</div>
             </div>
           </div>
-          <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:10 }}>
-            {Object.entries(formData).filter(([,v])=>v&&v.trim?.()).map(([k,v])=>{
-              const meta=FIELD_META[k]; if(!meta) return null
-              return (
-                <div key={k}>
-                  <div style={{ fontSize:10,fontWeight:700,color:'var(--ink3)',textTransform:'uppercase',letterSpacing:.4 }}>{meta.label}</div>
-                  <div style={{ fontSize:13,fontWeight:600,color:'var(--ink)',marginTop:2 }}>{v}</div>
-                </div>
-              )
-            })}
+          <div className="df-modal-confirm-grid">
           </div>
         </div>
         <div style={{ display:'flex',gap:10 }}>

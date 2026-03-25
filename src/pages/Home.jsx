@@ -28,9 +28,8 @@ export default function PageHome() {
     } finally { setLoading(false) }
   }
 
-  /* Floating ID card illustration */
   const FloatCard = () => (
-    <div className="anim-float" style={{ background: '#fff', borderRadius: 20, padding: 22, width: 290, boxShadow: '0 20px 60px rgba(35,82,255,.2)', border: '1px solid var(--border)' }}>
+    <div className="anim-float" style={{ background: '#fff', borderRadius: 20, padding: 22, width: '100%', maxWidth: 290, boxShadow: '0 20px 60px rgba(35,82,255,.2)', border: '1px solid var(--border)' }}>
       <div style={{ background: 'linear-gradient(135deg,#2352ff,#1538d4)', borderRadius: 12, padding: '14px 16px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'rgba(255,255,255,.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Outfit,sans-serif', fontWeight: 900, fontSize: 16, color: '#fff' }}>SN</div>
         <div>
@@ -59,25 +58,52 @@ export default function PageHome() {
 
   return (
     <div style={{ minHeight: '100vh', paddingTop: 64 }}>
+      <style>{`
+        .home-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; padding: 68px 48px; align-items: center; min-height: calc(100vh - 64px); }
+        .home-hero-title { font-size: 52px; }
+        .home-hero-desc { font-size: 17px; }
+        .home-hero-btns { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 40px; }
+        .home-stats { display: flex; gap: 36px; }
+        .home-login-section { padding: 64px 48px; }
+        .home-login-grid { max-width: 960px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+        .home-float-card { display: flex; justify-content: center; }
+
+        @media (max-width: 900px) {
+          .home-hero { grid-template-columns: 1fr !important; padding: 48px 24px !important; min-height: auto !important; gap: 36px !important; }
+          .home-hero-title { font-size: 38px !important; letter-spacing: -1px !important; }
+          .home-float-card { justify-content: center !important; }
+          .home-login-grid { grid-template-columns: 1fr !important; gap: 36px !important; }
+          .home-login-section { padding: 48px 24px !important; }
+        }
+        @media (max-width: 600px) {
+          .home-hero { padding: 36px 16px !important; }
+          .home-hero-title { font-size: 30px !important; }
+          .home-hero-desc { font-size: 15px !important; }
+          .home-hero-btns { flex-direction: column !important; }
+          .home-stats { gap: 20px !important; flex-wrap: wrap !important; }
+          .home-login-section { padding: 36px 16px !important; }
+        }
+      `}</style>
+
       {/* Hero */}
-      <section style={{ background: 'linear-gradient(135deg,#f0f4ff 0%,#e8eeff 45%,#f5f6fc 100%)', padding: '68px 48px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center', minHeight: 'calc(100vh - 64px)', position: 'relative', overflow: 'hidden' }}>
+      <section className="home-hero" style={{ background: 'linear-gradient(135deg,#f0f4ff 0%,#e8eeff 45%,#f5f6fc 100%)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: -100, right: -100, width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle,rgba(35,82,255,.06),transparent 70%)' }} />
         <div className="anim-fade-up">
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 14px', background: 'var(--blue-s)', borderRadius: 20, fontSize: 12, fontWeight: 700, color: 'var(--blue)', letterSpacing: .5, textTransform: 'uppercase', marginBottom: 22 }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--blue)', animation: 'pulseDot 2s infinite' }} />
             v2.0 — Enhanced Platform
           </div>
-          <h1 style={{ fontFamily: 'Outfit,sans-serif', fontSize: 52, fontWeight: 900, lineHeight: 1.08, letterSpacing: -2, color: 'var(--ink)', marginBottom: 18 }}>
+          <h1 className="home-hero-title" style={{ fontFamily: 'Outfit,sans-serif', fontWeight: 900, lineHeight: 1.08, letterSpacing: -2, color: 'var(--ink)', marginBottom: 18 }}>
             The Fastest Way<br/>to Create <span style={{ color: 'var(--blue)' }}>ID Cards</span>
           </h1>
-          <p style={{ fontSize: 17, color: 'var(--ink2)', lineHeight: 1.7, marginBottom: 32, maxWidth: 440 }}>
+          <p className="home-hero-desc" style={{ color: 'var(--ink2)', lineHeight: 1.7, marginBottom: 32, maxWidth: 440 }}>
             Generate, manage and distribute professional ID cards for schools, colleges and organizations — in minutes, not days.
           </p>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 40 }}>
+          <div className="home-hero-btns">
             <Btn size="lg" onClick={() => document.getElementById('login-box').scrollIntoView({ behavior: 'smooth' })}>Get Started →</Btn>
             <Btn size="lg" variant="ghost">Watch Demo ▶</Btn>
           </div>
-          <div style={{ display: 'flex', gap: 36 }}>
+          <div className="home-stats">
             {[['500+','ID Cards Generated'],['20+','Schools Served'],['99%','Satisfaction']].map(([n,l]) => (
               <div key={l}>
                 <div style={{ fontFamily: 'Outfit,sans-serif', fontSize: 28, fontWeight: 900, color: 'var(--ink)', letterSpacing: -1 }}>{n}</div>
@@ -86,12 +112,12 @@ export default function PageHome() {
             ))}
           </div>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'center' }}><FloatCard /></div>
+        <div className="home-float-card"><FloatCard /></div>
       </section>
 
       {/* Login */}
-      <section id="login-box" style={{ padding: '64px 48px', background: 'var(--paper)' }}>
-        <div style={{ maxWidth: 960, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64, alignItems: 'center' }}>
+      <section id="login-box" className="home-login-section" style={{ background: 'var(--paper)' }}>
+        <div className="home-login-grid">
           <div>
             <h2 style={{ fontFamily: 'Outfit,sans-serif', fontSize: 30, fontWeight: 900, color: 'var(--ink)', letterSpacing: -.5, marginBottom: 8 }}>Why Shriram ID Cards?</h2>
             <p style={{ fontSize: 14, color: 'var(--ink2)', marginBottom: 24, lineHeight: 1.6 }}>Trusted by schools and colleges across Nagpur for reliable, professional ID card generation.</p>

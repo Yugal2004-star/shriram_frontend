@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSubmissions } from '../hooks/useSubmissions'
 import { useOrganizations } from '../hooks/useOrganizations'
@@ -6,6 +6,20 @@ import { useCardTemplates } from '../hooks/useCardtemplates'
 import { Btn, Spinner } from '../components/shared/index'
 import { uploadBgImage } from '../lib/supabase'
 import toast from 'react-hot-toast'
+
+/* ── Responsive breakpoint hook ─────────────────────────── */
+function useWindowWidth() {
+  const [w, setW] = useState(
+    typeof window !== 'undefined' ? window.innerWidth : 1200
+  )
+  useEffect(() => {
+    const fn = () => setW(window.innerWidth)
+    window.addEventListener('resize', fn)
+    return () => window.removeEventListener('resize', fn)
+  }, [])
+  return w
+}
+
 
 /* ═══════════════════════════════════════════════════════════
    CARD SIZE PRESETS  (width × height in px)
@@ -264,7 +278,12 @@ export default function IDCardBuilder() {
   const [bgUploading,  setBgUploading]  = useState(false)
   const [activeTab,    setActiveTab]    = useState('fields')
   const [selected,     setSelected]     = useState(null)
+  const [showPanel,    setShowPanel]    = useState(false)  // mobile: show/hide left panel
   const bgInputRef = useRef(null)
+
+  const winW   = useWindowWidth()
+  const isMobile = winW < 640
+  const isTablet = winW >= 640 && winW < 1024
 
   const approved   = submissions.filter(s => s.status === 'approved')
   const previewSub = approved[previewIdx] || null
@@ -371,58 +390,96 @@ export default function IDCardBuilder() {
   const CH = config.cardH || 480
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', height:'100vh', paddingTop:64, background:'var(--paper2)' }}>
+    <div style={{ display:'flex', flexDirection:'column', height: isMobile ? 'auto' : '100vh',
+      minHeight:'100vh', paddingTop:64, background:'var(--paper2)' }}>
 
       {/* ── TOP BAR ── */}
-      <div style={{ height:56, background:'var(--paper)', borderBottom:'1px solid var(--border)',
+      <div style={{ background:'var(--paper)', borderBottom:'1px solid var(--border)',
         display:'flex', alignItems:'center', justifyContent:'space-between',
-        padding:'0 20px', flexShrink:0, gap:12 }}>
-        <div style={{ display:'flex', alignItems:'center', gap:12, flex:1, minWidth:0 }}>
+        padding: isMobile ? '10px 12px' : '0 20px',
+        minHeight:56, flexShrink:0, gap:8, flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
+
+        {/* Left: back + name */}
+        <div style={{ display:'flex', alignItems:'center', gap:8,
+          flex:1, minWidth:0, width: isMobile ? '100%' : 'auto' }}>
           <button onClick={() => navigate(-1)}
-            style={{ padding:'6px 12px', borderRadius:8, border:'1.5px solid var(--border)',
+            style={{ padding:'6px 10px', borderRadius:8, border:'1.5px solid var(--border)',
               background:'var(--paper2)', color:'var(--ink2)', fontSize:13, fontWeight:700,
-              cursor:'pointer', fontFamily:'inherit', flexShrink:0 }}>← Back</button>
+              cursor:'pointer', fontFamily:'inherit', flexShrink:0 }}>←</button>
+
+          {/* Mobile: panel toggle button */}
+          {isMobile && (
+            <button onClick={() => setShowPanel(p => !p)}
+              style={{ padding:'6px 10px', borderRadius:8, border:'1.5px solid var(--blue)',
+                background: showPanel ? 'var(--blue)' : 'var(--blue-s)',
+                color: showPanel ? '#fff' : 'var(--blue)',
+                fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit', flexShrink:0 }}>
+              {showPanel ? '✕ Close' : '⚙ Settings'}
+            </button>
+          )}
+
           <input value={templateName} onChange={e => setTemplateName(e.target.value)}
             placeholder="Template name..."
-            style={{ flex:1, border:'1.5px solid var(--border)', borderRadius:8, fontSize:14,
-              fontWeight:700, color:'var(--ink)', background:'var(--paper2)', outline:'none',
-              fontFamily:'Outfit,sans-serif', padding:'7px 12px', transition:'border .15s' }}
+            style={{ flex:1, minWidth:0, border:'1.5px solid var(--border)', borderRadius:8,
+              fontSize: isMobile ? 13 : 14, fontWeight:700, color:'var(--ink)',
+              background:'var(--paper2)', outline:'none',
+              fontFamily:'Outfit,sans-serif', padding:'7px 10px', transition:'border .15s' }}
             onFocus={e => e.target.style.borderColor='#2352ff'}
             onBlur={e  => e.target.style.borderColor='var(--border)'}/>
         </div>
-        <div style={{ display:'flex', gap:10, alignItems:'center', flexShrink:0 }}>
-          {/* Card size indicator */}
-          <div style={{ fontSize:11, color:'var(--ink3)', fontFamily:'JetBrains Mono,monospace',
-            background:'var(--paper2)', border:'1px solid var(--border)', borderRadius:6,
-            padding:'4px 8px', whiteSpace:'nowrap' }}>
-            {CW}×{CH} · {config.orientation}
-          </div>
-          {approved.length > 1 && (
+
+        {/* Right: actions */}
+        <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0,
+          width: isMobile ? '100%' : 'auto', justifyContent: isMobile ? 'flex-end' : 'flex-start' }}>
+          {/* Size badge — hide on mobile */}
+          {!isMobile && (
+            <div style={{ fontSize:11, color:'var(--ink3)', fontFamily:'JetBrains Mono,monospace',
+              background:'var(--paper2)', border:'1px solid var(--border)', borderRadius:6,
+              padding:'4px 8px', whiteSpace:'nowrap' }}>
+              {CW}×{CH} · {config.orientation}
+            </div>
+          )}
+          {approved.length > 1 && !isMobile && (
             <select value={previewIdx} onChange={e => setPreviewIdx(Number(e.target.value))}
               style={{ padding:'5px 8px', borderRadius:7, border:'1.5px solid var(--border)',
                 background:'var(--paper)', color:'var(--ink)', fontSize:12, cursor:'pointer', fontFamily:'inherit' }}>
               {approved.map((s,i) => <option key={s.id} value={i}>{s.name}</option>)}
             </select>
           )}
-          <button onClick={resetLayout}
-            style={{ padding:'6px 12px', borderRadius:8, border:'1.5px solid var(--border)',
-              background:'transparent', color:'var(--ink2)', fontSize:12, cursor:'pointer',
-              fontFamily:'inherit', fontWeight:600 }}>↺ Reset</button>
+          {!isMobile && (
+            <button onClick={resetLayout}
+              style={{ padding:'6px 12px', borderRadius:8, border:'1.5px solid var(--border)',
+                background:'transparent', color:'var(--ink2)', fontSize:12, cursor:'pointer',
+                fontFamily:'inherit', fontWeight:600 }}>↺ Reset</button>
+          )}
           <button onClick={handleSave} disabled={saving}
-            style={{ padding:'7px 18px', borderRadius:8, border:'none',
+            style={{ padding:'7px 16px', borderRadius:8, border:'none',
               background:saving?'var(--border2)':'#2352ff', color:'#fff',
               fontSize:13, fontWeight:700, cursor:saving?'not-allowed':'pointer', fontFamily:'inherit' }}>
-            {saving ? '⏳ Saving...' : '💾 Save Template'}
+            {saving ? '⏳' : '💾 Save'}
           </button>
         </div>
       </div>
 
       {/* ── MAIN ── */}
-      <div style={{ flex:1, display:'grid', gridTemplateColumns:'268px 1fr', overflow:'hidden' }}>
+      <div style={{
+        flex:1,
+        display: isMobile ? 'flex' : 'grid',
+        flexDirection: isMobile ? 'column' : undefined,
+        gridTemplateColumns: isMobile ? undefined : isTablet ? '220px 1fr' : '268px 1fr',
+        overflow: isMobile ? 'visible' : 'hidden',
+      }}>
 
-        {/* ══ LEFT PANEL ══ */}
-        <div style={{ background:'var(--paper)', borderRight:'1px solid var(--border)',
-          overflowY:'auto', display:'flex', flexDirection:'column' }}>
+        {/* ══ LEFT PANEL ══ — hidden on mobile unless showPanel */}
+        <div style={{
+          background:'var(--paper)',
+          borderRight: isMobile ? 'none' : '1px solid var(--border)',
+          borderBottom: isMobile ? '1px solid var(--border)' : 'none',
+          overflowY:'auto',
+          display: isMobile && !showPanel ? 'none' : 'flex',
+          flexDirection:'column',
+          maxHeight: isMobile ? '70vh' : undefined,
+        }}>
 
           <div style={{ display:'flex', borderBottom:'1px solid var(--border)', flexShrink:0 }}>
             {[['fields','📋 Fields'],['style','🎨 Style'],['canvas','📐 Canvas'],['settings','⚙ More']].map(([id,label]) => (
@@ -741,22 +798,43 @@ export default function IDCardBuilder() {
 
         {/* ══ CENTER: Card Canvas ══ */}
         <div style={{ overflowY:'auto', display:'flex', flexDirection:'column',
-          alignItems:'center', justifyContent:'flex-start', padding:'28px 24px',
+          alignItems:'center', justifyContent:'flex-start',
+          padding: isMobile ? '16px 12px' : '28px 24px',
           gap:16, background:'var(--paper2)' }}
           onClick={() => setSelected(null)}>
 
-          <div style={{ display:'flex', alignItems:'center', gap:12, background:'var(--paper)',
-            borderRadius:10, padding:'7px 16px', border:'1px solid var(--border)', fontSize:11,
-            flexWrap:'wrap', justifyContent:'center' }}>
+          {/* Hint bar — compact on mobile */}
+          <div style={{ display:'flex', alignItems:'center', gap:8, background:'var(--paper)',
+            borderRadius:10, padding:'7px 12px', border:'1px solid var(--border)',
+            fontSize:11, flexWrap:'wrap', justifyContent:'center',
+            width:'100%', maxWidth: isMobile ? '100%' : 'fit-content', boxSizing:'border-box' }}>
             <span style={{ color:'var(--blue)', fontWeight:700 }}>●</span>
-            <span style={{ color:'var(--ink3)' }}>Click photo or field → drag to move</span>
-            <span style={{ color:'var(--border)' }}>|</span>
-            <span style={{ color:'var(--ink3)' }}>📐 Canvas tab to resize or flip</span>
-            <span style={{ color:'var(--border)' }}>|</span>
-            <span style={{ color:'var(--ink3)' }}>🖼 Add background in Canvas tab</span>
+            {isMobile ? (
+              <span style={{ color:'var(--ink3)' }}>Tap field → drag to move · use ⚙ Settings above</span>
+            ) : (
+              <>
+                <span style={{ color:'var(--ink3)' }}>Click photo or field → drag to move</span>
+                <span style={{ color:'var(--border)' }}>|</span>
+                <span style={{ color:'var(--ink3)' }}>📐 Canvas tab to resize or flip</span>
+                <span style={{ color:'var(--border)' }}>|</span>
+                <span style={{ color:'var(--ink3)' }}>🖼 Add background in Canvas tab</span>
+              </>
+            )}
           </div>
 
-          <div onClick={e => e.stopPropagation()}>
+          {/* Card — scale down on small screens so it fits without horizontal scroll */}
+          <div onClick={e => e.stopPropagation()}
+            style={{
+              transform: isMobile
+                ? `scale(${Math.min(1, (winW - 24) / (CW + 32))})`
+                : isTablet
+                ? `scale(${Math.min(1, (winW - 268 - 48) / (CW + 32))})`
+                : 'scale(1)',
+              transformOrigin: 'top center',
+              marginBottom: isMobile
+                ? `${(Math.min(1, (winW - 24) / (CW + 32)) - 1) * (CH)}px`
+                : 0,
+            }}>
             <CardCanvas config={config} sub={previewSub} orgName={orgName}
               onMove={onMove} selected={selected} onSelect={setSelected}/>
           </div>
@@ -767,6 +845,23 @@ export default function IDCardBuilder() {
               {selected==='__photo__'
                 ? '🖼 Photo selected — drag on card · resize in Style tab'
                 : `✦ ${ALL_FIELDS.find(f=>f.key===selected)?.label} selected — drag on card`}
+            </div>
+          )}
+
+          {/* Mobile-only quick action bar */}
+          {isMobile && (
+            <div style={{ display:'flex', gap:8, width:'100%' }}>
+              <button onClick={resetLayout}
+                style={{ flex:1, padding:'8px', borderRadius:8, border:'1.5px solid var(--border)',
+                  background:'var(--paper)', color:'var(--ink2)', fontSize:12, fontWeight:700,
+                  cursor:'pointer', fontFamily:'inherit' }}>↺ Reset Layout</button>
+              {approved.length > 1 && (
+                <select value={previewIdx} onChange={e => setPreviewIdx(Number(e.target.value))}
+                  style={{ flex:2, padding:'8px', borderRadius:8, border:'1.5px solid var(--border)',
+                    background:'var(--paper)', color:'var(--ink)', fontSize:12, cursor:'pointer', fontFamily:'inherit' }}>
+                  {approved.map((s,i) => <option key={s.id} value={i}>{s.name}</option>)}
+                </select>
+              )}
             </div>
           )}
 
