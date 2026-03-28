@@ -133,9 +133,64 @@ function CropModal({ open, imageUrl, onDone, onClose }) {
 
   return (
     <Modal open={open} onClose={onClose} title="📷 Crop Your Photo" width={640}>
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 200px', gap:14, alignItems:'start' }}>
+      <style>{`
+        .crop-layout {
+          display: grid;
+          grid-template-columns: 1fr 200px;
+          gap: 14px;
+          align-items: start;
+        }
+        .crop-image-area {
+          position: relative;
+          background: #111;
+          border-radius: 10px;
+          overflow: hidden;
+          height: 280px;
+          user-select: none;
+        }
+        .crop-controls {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .crop-mode-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+        }
+        .crop-actions {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        @media (max-width: 540px) {
+          .crop-layout {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+          }
+          .crop-image-area {
+            height: 240px !important;
+          }
+          .crop-controls {
+            flex-direction: column;
+            gap: 10px;
+          }
+          .crop-mode-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+          }
+          .crop-actions {
+            flex-direction: row;
+            gap: 8px;
+          }
+          .crop-actions > * {
+            flex: 1;
+          }
+        }
+      `}</style>
+      <div className="crop-layout">
         {/* Image */}
-        <div style={{ position:'relative', background:'#111', borderRadius:10, overflow:'hidden', height:280, userSelect:'none' }}>
+        <div className="crop-image-area">
           <img ref={imgRef} src={imageUrl} onLoad={onImgLoad} crossOrigin="anonymous" draggable={false}
             style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'contain', pointerEvents:'none', opacity:mode==='auto'?.35:1, transition:'opacity .3s' }} alt=""/>
           {mode==='auto'&&(
@@ -151,17 +206,17 @@ function CropModal({ open, imageUrl, onDone, onClose }) {
               <div style={{ position:'absolute',left:0,width:crop.x,top:crop.y,height:crop.h,background:'rgba(0,0,0,.6)',pointerEvents:'none' }}/>
               <div style={{ position:'absolute',left:crop.x+crop.w,right:0,top:crop.y,height:crop.h,background:'rgba(0,0,0,.6)',pointerEvents:'none' }}/>
               <div onMouseDown={e=>startDrag(e,'move')} onTouchStart={e=>startDrag(e,'move')}
-                style={{ position:'absolute',left:crop.x,top:crop.y,width:crop.w,height:crop.h,border:'2px solid rgba(255,255,255,.9)',cursor:'grab',boxSizing:'border-box' }}>
+                style={{ position:'absolute',left:crop.x,top:crop.y,width:crop.w,height:crop.h,border:'2px solid rgba(255,255,255,.9)',cursor:'grab',boxSizing:'border-box',touchAction:'none' }}>
                 {HANDLES.map(h=><div key={h.id} onMouseDown={e=>startDrag(e,'resize',h.id)} onTouchStart={e=>startDrag(e,'resize',h.id)}
-                  style={{ position:'absolute',left:`calc(${h.cx*100}% - 6px)`,top:`calc(${h.cy*100}% - 6px)`,width:12,height:12,borderRadius:2,background:'#fff',border:'2px solid #2352ff',cursor:CURSORS[h.id],zIndex:10 }}/>)}
+                  style={{ position:'absolute',left:`calc(${h.cx*100}% - 7px)`,top:`calc(${h.cy*100}% - 7px)`,width:14,height:14,borderRadius:3,background:'#fff',border:'2px solid #2352ff',cursor:CURSORS[h.id],zIndex:10,touchAction:'none' }}/>)}
               </div>
             </>
           )}
-          {!mode&&<div style={{ position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none' }}><div style={{ background:'rgba(0,0,0,.5)',color:'#fff',fontSize:12,padding:'8px 16px',borderRadius:20 }}>Select crop option →</div></div>}
+          {!mode&&<div style={{ position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none' }}><div style={{ background:'rgba(0,0,0,.5)',color:'#fff',fontSize:12,padding:'8px 16px',borderRadius:20 }}>Select a crop option ↓</div></div>}
         </div>
         {/* Controls */}
-        <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+        <div className="crop-controls">
+          <div className="crop-mode-grid">
             {[['auto','⚡','Auto','Smart center'],['custom','✂️','Custom','Drag to select']].map(([m,icon,label,sub])=>(
               <div key={m} onClick={m==='auto'?pickAuto:pickCustom}
                 style={{ padding:'10px 6px', borderRadius:'var(--r)', border:`2px solid ${mode===m?'#2352ff':'var(--border)'}`, background:mode===m?'var(--blue-s)':'var(--paper2)', cursor:'pointer', textAlign:'center', transition:'all .18s' }}>
@@ -176,10 +231,12 @@ function CropModal({ open, imageUrl, onDone, onClose }) {
           </div>}
           <div style={{ padding:'8px 10px', background:'var(--paper2)', borderRadius:'var(--r)', border:'1px solid var(--border)', fontSize:11, color:'var(--ink3)' }}>📐 Portrait 3:4 ratio</div>
           <div style={{ flex:1 }}/>
-          <Btn full onClick={handleApply} disabled={!mode||applying||(mode==='auto'&&!autoResult)||(mode==='custom'&&!loaded)}>
-            {applying?'⏳ Applying...':'✓ Apply Crop'}
-          </Btn>
-          <Btn variant="ghost" full onClick={onClose} disabled={applying}>Cancel</Btn>
+          <div className="crop-actions">
+            <Btn full onClick={handleApply} disabled={!mode||applying||(mode==='auto'&&!autoResult)||(mode==='custom'&&!loaded)}>
+              {applying?'⏳ Applying...':'✓ Apply Crop'}
+            </Btn>
+            <Btn variant="ghost" full onClick={onClose} disabled={applying}>Cancel</Btn>
+          </div>
         </div>
       </div>
     </Modal>
