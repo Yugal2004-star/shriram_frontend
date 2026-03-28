@@ -150,7 +150,7 @@ export default function Organizations() {
     if(!form.name.trim()) { setErrors({name:'Name is required'}); return }
     setSaving(true)
     try {
-      await updateOrganization(editOrg.id, form)
+      await updateOrganization(editOrg.id, form, logoFile)   // ← pass logoFile
       toast.success('Organization updated!')
       resetForm()
     } catch(err) { toast.error(err.message || 'Failed to update') }

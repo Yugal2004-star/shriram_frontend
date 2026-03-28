@@ -78,10 +78,34 @@ export function OrganizationsProvider({ children }) {
     return org
   }
 
-  const updateOrganization = async (id, updates) => {
-    const res = await apiFetch(`/organizations/${id}`, { method: 'PATCH', body: JSON.stringify(updates) })
-    setOrganizations(prev => prev.map(o => o.id === id ? res.data : o))
-    return res.data
+  const updateOrganization = async (id, updates, logoFile = null) => {
+    /* 1. Save text fields first */
+    let res = await apiFetch(`/organizations/${id}`, { method: 'PATCH', body: JSON.stringify(updates) })
+    let org = res.data
+
+    /* 2. Upload new logo if one was selected */
+    if (logoFile) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const token = session?.access_token
+        const form  = new FormData()
+        form.append('logo', logoFile)
+        const logoRes  = await fetch(`${BASE_URL}/organizations/${id}/logo`, {
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          body: form,
+        })
+        const logoJson = await logoRes.json()
+        if (logoRes.ok) org = logoJson.data
+        else console.warn('Logo upload failed:', logoJson)
+      } catch (err) {
+        console.warn('Logo upload error:', err.message)
+        toast.error('Organization updated but logo upload failed.')
+      }
+    }
+
+    setOrganizations(prev => prev.map(o => o.id === id ? org : o))
+    return org
   }
 
   const deleteOrganization = async (id) => {
