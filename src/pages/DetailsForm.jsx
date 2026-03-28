@@ -79,24 +79,34 @@ function CropModal({ open, imageUrl, onDone, onClose }) {
   const [autoResult,setAutoResult]=useState(null)
   const [applying,setApplying]=useState(false)
 
-  useEffect(()=>{ if(!open) return; setMode(null); setLoaded(false); setAutoResult(null) },[open,imageUrl])
+  useEffect(()=>{ if(!open) return; setMode(null); setLoaded(false); setAutoResult(null); setImgSize({w:1,h:1}) },[open,imageUrl])
 
-  const onImgLoad=useCallback(()=>{
+  // Only initialise crop once the modal container has real pixel dimensions
+  const initCrop=useCallback(()=>{
     if(!imgRef.current) return
     const r=imgRef.current.getBoundingClientRect()
-    const iw=r.width,ih=r.height; setImgSize({w:iw,h:ih})
-    const cw=Math.round(iw*.65),ch=Math.round(cw/ASPECT)
-    setCrop({x:Math.round((iw-cw)/2),y:Math.round((ih-Math.min(ch,ih))/2),w:cw,h:Math.min(ch,ih)}); setLoaded(true)
+    const iw=r.width, ih=r.height
+    // Guard: if modal hasn't finished rendering yet, dimensions will be 0 — retry
+    if(iw<10||ih<10){ setTimeout(initCrop,60); return }
+    setImgSize({w:iw,h:ih})
+    const cw=Math.round(iw*.65), ch=Math.round(cw/ASPECT)
+    setCrop({x:Math.round((iw-cw)/2),y:Math.round((ih-Math.min(ch,ih))/2),w:cw,h:Math.min(ch,ih)})
+    setLoaded(true)
   },[])
 
+  // img onLoad — image element ready; actual crop sizing is deferred to initCrop
+  const onImgLoad=useCallback(()=>{ /* intentionally empty — sizing handled by pickCustom->initCrop */ },[])
+
   const pickAuto=async()=>{ setMode('auto'); if(!autoResult){ const r=await autoCropImage(imageUrl); setAutoResult(r) } }
-  const pickCustom=()=>{ setMode('custom'); setTimeout(()=>{ if(imgRef.current) onImgLoad() },50) }
+  const pickCustom=()=>{ setLoaded(false); setMode('custom'); setTimeout(initCrop, 80) }
 
   const clamp=useCallback((box)=>{
     let{x,y,w,h}=box
-    w=Math.max(MIN_W,Math.min(w,imgSize.w)); h=Math.round(w/ASPECT)
-    if(h>imgSize.h){h=imgSize.h;w=Math.round(h*ASPECT)}
-    x=Math.max(0,Math.min(x,imgSize.w-w)); y=Math.max(0,Math.min(y,imgSize.h-h))
+    // Defensive guard: never let imgSize be 0 (causes collapsed crop / blank screen crash)
+    const maxW=Math.max(imgSize.w,1), maxH=Math.max(imgSize.h,1)
+    w=Math.max(MIN_W,Math.min(w,maxW)); h=Math.round(w/ASPECT)
+    if(h>maxH){h=maxH;w=Math.round(h*ASPECT)}
+    x=Math.max(0,Math.min(x,maxW-w)); y=Math.max(0,Math.min(y,maxH-h))
     return{x,y,w,h}
   },[imgSize])
 
@@ -134,69 +144,28 @@ function CropModal({ open, imageUrl, onDone, onClose }) {
   return (
     <Modal open={open} onClose={onClose} title="📷 Crop Your Photo" width={640}>
       <style>{`
-        .crop-layout {
-          display: grid;
-          grid-template-columns: 1fr 200px;
-          gap: 14px;
-          align-items: start;
-        }
-        .crop-image-area {
-          position: relative;
-          background: #111;
-          border-radius: 10px;
-          overflow: hidden;
-          height: 280px;
-          user-select: none;
-        }
-        .crop-controls {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        .crop-mode-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 8px;
-        }
-        .crop-actions {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        @media (max-width: 540px) {
-          .crop-layout {
-            grid-template-columns: 1fr !important;
-            gap: 12px !important;
-          }
-          .crop-image-area {
-            height: 240px !important;
-          }
-          .crop-controls {
-            flex-direction: column;
-            gap: 10px;
-          }
-          .crop-mode-grid {
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-          }
-          .crop-actions {
-            flex-direction: row;
-            gap: 8px;
-          }
-          .crop-actions > * {
-            flex: 1;
-          }
+        .crop-layout { display:grid; grid-template-columns:1fr 200px; gap:14px; align-items:start; }
+        .crop-img-box { position:relative; background:#111; border-radius:10px; overflow:hidden; height:280px; user-select:none; touch-action:none; }
+        .crop-controls { display:flex; flex-direction:column; gap:8px; }
+        .crop-mode-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+        .crop-actions { display:flex; flex-direction:column; gap:8px; }
+        @media (max-width:540px) {
+          .crop-layout { grid-template-columns:1fr !important; gap:12px !important; }
+          .crop-img-box { height:250px !important; }
+          .crop-actions { flex-direction:row !important; }
+          .crop-actions > * { flex:1; }
         }
       `}</style>
       <div className="crop-layout">
-        {/* Image */}
-        <div className="crop-image-area">
+        {/* Image area */}
+        <div className="crop-img-box">
           <img ref={imgRef} src={imageUrl} onLoad={onImgLoad} crossOrigin="anonymous" draggable={false}
             style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'contain', pointerEvents:'none', opacity:mode==='auto'?.35:1, transition:'opacity .3s' }} alt=""/>
           {mode==='auto'&&(
-            <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
-              {!autoResult?<div style={{ color:'#fff', fontSize:13 }}>⏳ Processing...</div>
-                :<img src={autoResult} style={{ maxWidth:'70%', maxHeight:'90%', borderRadius:10, border:'3px solid #2352ff' }} alt=""/>}
+            <div style={{ position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center' }}>
+              {!autoResult
+                ?<div style={{ color:'#fff',fontSize:13 }}>⏳ Processing...</div>
+                :<img src={autoResult} style={{ maxWidth:'70%',maxHeight:'90%',borderRadius:10,border:'3px solid #2352ff' }} alt=""/>}
             </div>
           )}
           {mode==='custom'&&loaded&&(
@@ -207,29 +176,37 @@ function CropModal({ open, imageUrl, onDone, onClose }) {
               <div style={{ position:'absolute',left:crop.x+crop.w,right:0,top:crop.y,height:crop.h,background:'rgba(0,0,0,.6)',pointerEvents:'none' }}/>
               <div onMouseDown={e=>startDrag(e,'move')} onTouchStart={e=>startDrag(e,'move')}
                 style={{ position:'absolute',left:crop.x,top:crop.y,width:crop.w,height:crop.h,border:'2px solid rgba(255,255,255,.9)',cursor:'grab',boxSizing:'border-box',touchAction:'none' }}>
-                {HANDLES.map(h=><div key={h.id} onMouseDown={e=>startDrag(e,'resize',h.id)} onTouchStart={e=>startDrag(e,'resize',h.id)}
-                  style={{ position:'absolute',left:`calc(${h.cx*100}% - 7px)`,top:`calc(${h.cy*100}% - 7px)`,width:14,height:14,borderRadius:3,background:'#fff',border:'2px solid #2352ff',cursor:CURSORS[h.id],zIndex:10,touchAction:'none' }}/>)}
+                {HANDLES.map(h=>(
+                  <div key={h.id} onMouseDown={e=>startDrag(e,'resize',h.id)} onTouchStart={e=>startDrag(e,'resize',h.id)}
+                    style={{ position:'absolute',left:`calc(${h.cx*100}% - 8px)`,top:`calc(${h.cy*100}% - 8px)`,width:16,height:16,borderRadius:3,background:'#fff',border:'2px solid #2352ff',cursor:CURSORS[h.id],zIndex:10,touchAction:'none' }}/>
+                ))}
               </div>
             </>
           )}
-          {!mode&&<div style={{ position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none' }}><div style={{ background:'rgba(0,0,0,.5)',color:'#fff',fontSize:12,padding:'8px 16px',borderRadius:20 }}>Select a crop option ↓</div></div>}
+          {!mode&&(
+            <div style={{ position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none' }}>
+              <div style={{ background:'rgba(0,0,0,.5)',color:'#fff',fontSize:12,padding:'8px 16px',borderRadius:20 }}>Select a crop option ↓</div>
+            </div>
+          )}
         </div>
         {/* Controls */}
         <div className="crop-controls">
           <div className="crop-mode-grid">
             {[['auto','⚡','Auto','Smart center'],['custom','✂️','Custom','Drag to select']].map(([m,icon,label,sub])=>(
               <div key={m} onClick={m==='auto'?pickAuto:pickCustom}
-                style={{ padding:'10px 6px', borderRadius:'var(--r)', border:`2px solid ${mode===m?'#2352ff':'var(--border)'}`, background:mode===m?'var(--blue-s)':'var(--paper2)', cursor:'pointer', textAlign:'center', transition:'all .18s' }}>
-                <div style={{ fontSize:20, marginBottom:3 }}>{icon}</div>
-                <div style={{ fontSize:12, fontWeight:700, color:mode===m?'var(--blue)':'var(--ink)' }}>{label}</div>
-                <div style={{ fontSize:10, color:'var(--ink3)', marginTop:1 }}>{sub}</div>
+                style={{ padding:'10px 6px',borderRadius:'var(--r)',border:`2px solid ${mode===m?'#2352ff':'var(--border)'}`,background:mode===m?'var(--blue-s)':'var(--paper2)',cursor:'pointer',textAlign:'center',transition:'all .18s' }}>
+                <div style={{ fontSize:20,marginBottom:3 }}>{icon}</div>
+                <div style={{ fontSize:12,fontWeight:700,color:mode===m?'var(--blue)':'var(--ink)' }}>{label}</div>
+                <div style={{ fontSize:10,color:'var(--ink3)',marginTop:1 }}>{sub}</div>
               </div>
             ))}
           </div>
-          {mode&&<div style={{ padding:'8px 10px', background:'var(--blue-s)', borderRadius:'var(--r)', fontSize:11, color:'var(--blue)', fontWeight:600 }}>
-            {mode==='auto'?'⚡ Center-cropped 3:4':'✂ Drag box · 3:4 locked'}
-          </div>}
-          <div style={{ padding:'8px 10px', background:'var(--paper2)', borderRadius:'var(--r)', border:'1px solid var(--border)', fontSize:11, color:'var(--ink3)' }}>📐 Portrait 3:4 ratio</div>
+          {mode&&(
+            <div style={{ padding:'8px 10px',background:'var(--blue-s)',borderRadius:'var(--r)',fontSize:11,color:'var(--blue)',fontWeight:600 }}>
+              {mode==='auto'?'⚡ Center-cropped 3:4':'✂ Drag box · 3:4 locked'}
+            </div>
+          )}
+          <div style={{ padding:'8px 10px',background:'var(--paper2)',borderRadius:'var(--r)',border:'1px solid var(--border)',fontSize:11,color:'var(--ink3)' }}>📐 Portrait 3:4 ratio</div>
           <div style={{ flex:1 }}/>
           <div className="crop-actions">
             <Btn full onClick={handleApply} disabled={!mode||applying||(mode==='auto'&&!autoResult)||(mode==='custom'&&!loaded)}>
