@@ -40,22 +40,37 @@ function DField({ label, value, onChange, placeholder, type='text', required=fal
   )
 }
 
-function Row({ icon, text }) {
+/* ── Detail row used inside the view panel ────────────────────── */
+function InfoRow({ icon, label, value, isLink=false }) {
+  if (!value) return null
   return (
-    <div style={{ display:'flex', gap:8, alignItems:'flex-start' }}>
-      <span style={{ fontSize:13, flexShrink:0 }}>{icon}</span>
-      <span style={{ fontSize:12, color:'var(--ink2)', lineHeight:1.5, wordBreak:'break-word' }}>{text}</span>
+    <div style={{ display:'flex', gap:14, alignItems:'flex-start', padding:'13px 0', borderBottom:'1px solid var(--border)' }}>
+      <div style={{ width:36, height:36, borderRadius:9, background:'var(--blue-s)', border:'1px solid rgba(35,82,255,.15)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:16 }}>
+        {icon}
+      </div>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontSize:11, fontWeight:600, color:'var(--ink3)', textTransform:'uppercase', letterSpacing:.5, marginBottom:3 }}>{label}</div>
+        {isLink
+          ? <a href={value} target="_blank" rel="noopener noreferrer"
+              style={{ fontSize:13, color:'var(--blue)', fontWeight:600, wordBreak:'break-word', textDecoration:'none' }}>{value}</a>
+          : <div style={{ fontSize:13, color:'var(--ink)', fontWeight:500, lineHeight:1.5, wordBreak:'break-word' }}>{value}</div>
+        }
+      </div>
     </div>
   )
 }
 
-function OrgCard({ org, onEdit, onDelete }) {
+/* ── Clickable list card ──────────────────────────────────────── */
+function OrgCard({ org, onView, onEdit, onDelete }) {
   return (
-    <div style={{ background:'var(--paper)', border:'1px solid var(--border)', borderRadius:14, overflow:'hidden', transition:'all .2s' }}
-      onMouseEnter={e=>e.currentTarget.style.borderColor='var(--border2)'}
-      onMouseLeave={e=>e.currentTarget.style.borderColor='var(--border)'}>
+    <div
+      onClick={() => onView(org)}
+      style={{ background:'var(--paper)', border:'1px solid var(--border)', borderRadius:14, overflow:'hidden', transition:'all .2s', cursor:'pointer' }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor='var(--blue)'; e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 6px 24px rgba(35,82,255,.10)' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor='var(--border)'; e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='none' }}>
       <div style={{ height:4, background:'linear-gradient(90deg,var(--blue),#7c5cfc)' }}/>
       <div style={{ padding:18 }}>
+        {/* Logo + name */}
         <div style={{ display:'flex', gap:14, alignItems:'flex-start', marginBottom:14 }}>
           <div style={{ width:52, height:52, borderRadius:12, overflow:'hidden', flexShrink:0, background:'var(--paper2)', border:'1.5px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center' }}>
             {org.logo_url
@@ -71,26 +86,24 @@ function OrgCard({ org, onEdit, onDelete }) {
             </div>
           </div>
         </div>
+
+        {/* Info rows */}
         <div style={{ display:'flex', flexDirection:'column', gap:7, marginBottom:14 }}>
-          {org.address && <Row icon="📍" text={org.address}/>}
-          {org.contact && <Row icon="📞" text={org.contact}/>}
-          {org.email   && <Row icon="✉"  text={org.email}/>}
-          {org.website && (
-            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-              <span style={{ fontSize:13, flexShrink:0 }}>🌐</span>
-              <a href={org.website} target="_blank" rel="noopener noreferrer"
-                style={{ fontSize:12, color:'var(--blue)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:200, textDecoration:'none' }}>
-                {org.website}
-              </a>
-            </div>
-          )}
+          {org.address && <div style={{ display:'flex', gap:8, alignItems:'flex-start' }}><span style={{ fontSize:13, flexShrink:0 }}>📍</span><span style={{ fontSize:12, color:'var(--ink2)', lineHeight:1.5, wordBreak:'break-word' }}>{org.address}</span></div>}
+          {org.contact && <div style={{ display:'flex', gap:8, alignItems:'flex-start' }}><span style={{ fontSize:13, flexShrink:0 }}>📞</span><span style={{ fontSize:12, color:'var(--ink2)', lineHeight:1.5 }}>{org.contact}</span></div>}
+          {org.email   && <div style={{ display:'flex', gap:8, alignItems:'flex-start' }}><span style={{ fontSize:13, flexShrink:0 }}>✉</span><span style={{ fontSize:12, color:'var(--ink2)', lineHeight:1.5, wordBreak:'break-word' }}>{org.email}</span></div>}
+          {org.website && <div style={{ display:'flex', gap:8, alignItems:'center' }}><span style={{ fontSize:13, flexShrink:0 }}>🌐</span><span style={{ fontSize:12, color:'var(--blue)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:200 }}>{org.website}</span></div>}
         </div>
+
+        {/* Footer */}
         <div style={{ paddingTop:12, borderTop:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
           <span style={{ fontSize:11, color:'var(--ink3)', fontFamily:'JetBrains Mono,monospace' }}>Added {fmtDate(org.created_at)}</span>
           <div style={{ display:'flex', gap:6 }}>
-            <button onClick={()=>onEdit(org)} title="Edit"
+            <button
+              onClick={e => { e.stopPropagation(); onEdit(org) }} title="Edit"
               style={{ width:30, height:30, borderRadius:7, border:'1px solid var(--border)', background:'var(--blue-s)', color:'var(--blue)', cursor:'pointer', fontSize:14 }}>✏</button>
-            <button onClick={()=>onDelete(org.id)} title="Delete"
+            <button
+              onClick={e => { e.stopPropagation(); onDelete(org.id) }} title="Delete"
               style={{ width:30, height:30, borderRadius:7, border:'1px solid var(--border)', background:'var(--red-s)', color:'var(--red)', cursor:'pointer', fontSize:14 }}>🗑</button>
           </div>
         </div>
@@ -99,16 +112,140 @@ function OrgCard({ org, onEdit, onDelete }) {
   )
 }
 
+/* ── Slide-in View Panel ──────────────────────────────────────── */
+function OrgViewPanel({ org, onClose, onEdit, onDelete }) {
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.45)', zIndex:1000, backdropFilter:'blur(3px)', WebkitBackdropFilter:'blur(3px)', animation:'ovl-in .18s ease' }}
+      />
+
+      {/* Drawer */}
+      <div style={{
+        position:'fixed', top:0, right:0, bottom:0, width:'100%', maxWidth:460,
+        background:'var(--paper)', zIndex:1001, overflowY:'auto',
+        boxShadow:'-8px 0 48px rgba(0,0,0,.18)',
+        animation:'drw-in .22s cubic-bezier(.22,1,.36,1)',
+        display:'flex', flexDirection:'column',
+      }}>
+        <style>{`
+          @keyframes ovl-in { from{opacity:0} to{opacity:1} }
+          @keyframes drw-in { from{transform:translateX(100%)} to{transform:translateX(0)} }
+          .ovp-scroll::-webkit-scrollbar{width:5px}
+          .ovp-scroll::-webkit-scrollbar-track{background:transparent}
+          .ovp-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+        `}</style>
+
+        {/* ── Gradient header ── */}
+        <div style={{ background:'linear-gradient(135deg,var(--blue) 0%,#7c5cfc 100%)', padding:'24px 20px 22px', flexShrink:0 }}>
+          {/* Top bar: close + action buttons */}
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+            <button onClick={onClose}
+              style={{ background:'rgba(255,255,255,.18)', border:'none', color:'#fff', borderRadius:8, width:34, height:34, cursor:'pointer', fontSize:17, display:'flex', alignItems:'center', justifyContent:'center' }}>
+              ✕
+            </button>
+            <div style={{ display:'flex', gap:8 }}>
+              <button onClick={() => onEdit(org)}
+                style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 16px', borderRadius:8, border:'1.5px solid rgba(255,255,255,.4)', background:'rgba(255,255,255,.15)', color:'#fff', cursor:'pointer', fontSize:13, fontWeight:700 }}
+                onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,.28)'}
+                onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,.15)'}>
+                ✏ Edit
+              </button>
+              <button onClick={() => onDelete(org.id)}
+                style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 16px', borderRadius:8, border:'1.5px solid rgba(255,100,100,.5)', background:'rgba(220,38,38,.22)', color:'#fecaca', cursor:'pointer', fontSize:13, fontWeight:700 }}
+                onMouseEnter={e=>e.currentTarget.style.background='rgba(220,38,38,.4)'}
+                onMouseLeave={e=>e.currentTarget.style.background='rgba(220,38,38,.22)'}>
+                🗑 Delete
+              </button>
+            </div>
+          </div>
+
+          {/* Logo + org name */}
+          <div style={{ display:'flex', gap:16, alignItems:'center' }}>
+            <div style={{ width:70, height:70, borderRadius:16, overflow:'hidden', background:'rgba(255,255,255,.2)', border:'2.5px solid rgba(255,255,255,.4)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              {org.logo_url
+                ? <img src={org.logo_url} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt=""/>
+                : <span style={{ fontFamily:'Outfit,sans-serif', fontWeight:900, fontSize:24, color:'#fff' }}>{org.name.slice(0,2).toUpperCase()}</span>
+              }
+            </div>
+            <div style={{ flex:1, minWidth:0 }}>
+              <h2 style={{ fontFamily:'Outfit,sans-serif', fontSize:21, fontWeight:900, color:'#fff', letterSpacing:-.4, margin:'0 0 8px', lineHeight:1.2, wordBreak:'break-word' }}>{org.name}</h2>
+              <div style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'4px 12px', borderRadius:20, background:'rgba(255,255,255,.2)', border:'1px solid rgba(255,255,255,.3)' }}>
+                <span style={{ fontSize:13 }}>{ORG_ICONS[org.type]}</span>
+                <span style={{ fontSize:12, fontWeight:700, color:'#fff' }}>{org.type}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Scrollable body ── */}
+        <div className="ovp-scroll" style={{ flex:1, overflowY:'auto', padding:'0 20px 32px' }}>
+
+          {/* Date chip */}
+          <div style={{ display:'flex', justifyContent:'flex-end', padding:'14px 0 6px' }}>
+            <span style={{ fontSize:11, color:'var(--ink3)', fontFamily:'JetBrains Mono,monospace', background:'var(--paper2)', border:'1px solid var(--border)', borderRadius:6, padding:'3px 9px' }}>
+              📅 Registered {fmtDate(org.created_at)}
+            </span>
+          </div>
+
+          {/* Detail rows */}
+          <div>
+            <InfoRow icon="📍" label="Address"        value={org.address} />
+            <InfoRow icon="📞" label="Contact Number" value={org.contact} />
+            <InfoRow icon="✉"  label="Email Address"  value={org.email}   />
+            <InfoRow icon="🌐" label="Website"        value={org.website} isLink />
+          </div>
+
+          {!org.address && !org.contact && !org.email && !org.website && (
+            <div style={{ textAlign:'center', padding:'36px 0', color:'var(--ink3)', fontSize:13 }}>
+              No additional contact details added.
+            </div>
+          )}
+
+          {/* Tip banner */}
+          <div style={{ marginTop:22, padding:'12px 14px', background:'var(--blue-s)', borderRadius:10, border:'1px solid rgba(35,82,255,.2)', fontSize:13, color:'var(--blue)', fontWeight:600, display:'flex', gap:10, alignItems:'flex-start' }}>
+            <span style={{ fontSize:16, flexShrink:0 }}>💡</span>
+            <div>
+              <div style={{ marginBottom:3 }}>Used on ID Cards</div>
+              <div style={{ fontSize:12, fontWeight:400, color:'var(--ink2)' }}>This organization's name and logo appear on all generated ID cards for this institution.</div>
+            </div>
+          </div>
+
+          {/* Bottom action buttons */}
+          <div style={{ display:'flex', gap:10, marginTop:24 }}>
+            <button onClick={() => onEdit(org)}
+              style={{ flex:1, padding:'12px', borderRadius:10, border:'1.5px solid var(--blue)', background:'var(--blue-s)', color:'var(--blue)', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit', transition:'all .18s' }}
+              onMouseEnter={e=>{e.currentTarget.style.background='var(--blue)';e.currentTarget.style.color='#fff'}}
+              onMouseLeave={e=>{e.currentTarget.style.background='var(--blue-s)';e.currentTarget.style.color='var(--blue)'}}>
+              ✏ Edit Organization
+            </button>
+            <button onClick={() => onDelete(org.id)}
+              style={{ flex:1, padding:'12px', borderRadius:10, border:'1.5px solid var(--red)', background:'var(--red-s)', color:'var(--red)', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit', transition:'all .18s' }}
+              onMouseEnter={e=>{e.currentTarget.style.background='var(--red)';e.currentTarget.style.color='#fff'}}
+              onMouseLeave={e=>{e.currentTarget.style.background='var(--red-s)';e.currentTarget.style.color='var(--red)'}}>
+              🗑 Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+/* ── Main Component ───────────────────────────────────────────── */
 export default function Organizations() {
   const { organizations, loading, createOrganization, updateOrganization, deleteOrganization } = useOrganizations()
 
   const [view,        setView]        = useState('list')
+  const [viewOrg,     setViewOrg]     = useState(null)   // org shown in side panel
   const [editOrg,     setEditOrg]     = useState(null)
   const [form,        setForm]        = useState(EMPTY_FORM)
   const [errors,      setErrors]      = useState({})
   const [logoFile,    setLogoFile]    = useState(null)
   const [logoPreview, setLogoPreview] = useState(null)
-  const [logoRemoved,  setLogoRemoved]  = useState(false)
+  const [logoRemoved, setLogoRemoved] = useState(false)
   const [saving,      setSaving]      = useState(false)
   const [deleteId,    setDeleteId]    = useState(null)
   const [filterType,  setFilterType]  = useState('All')
@@ -135,7 +272,10 @@ export default function Organizations() {
     setErrors(e); return Object.keys(e).length === 0
   }
 
-  const resetForm = () => { setForm(EMPTY_FORM); setErrors({}); setLogoFile(null); setLogoPreview(null); setLogoRemoved(false); setEditOrg(null); setView('list') }
+  const resetForm = () => {
+    setForm(EMPTY_FORM); setErrors({}); setLogoFile(null); setLogoPreview(null)
+    setLogoRemoved(false); setEditOrg(null); setView('list')
+  }
 
   const handleSave = async () => {
     if(!validate()) return
@@ -152,18 +292,28 @@ export default function Organizations() {
     if(!form.name.trim()) { setErrors({name:'Name is required'}); return }
     setSaving(true)
     try {
-      await updateOrganization(editOrg.id, form, logoFile, logoRemoved)   // ← pass logoFile
+      await updateOrganization(editOrg.id, form, logoFile, logoRemoved)
       toast.success('Organization updated!')
       resetForm()
     } catch(err) { toast.error(err.message || 'Failed to update') }
     finally { setSaving(false) }
   }
 
+  /* Panel helpers — always close panel before navigating away */
+  const openView   = org => setViewOrg(org)
+  const closeView  = ()  => setViewOrg(null)
+
   const openEdit = org => {
+    setViewOrg(null)
     setEditOrg(org)
     setForm({ name:org.name||'', type:org.type||'School', address:org.address||'', contact:org.contact||'', email:org.email||'', website:org.website||'' })
     setErrors({}); setLogoFile(null); setLogoPreview(org.logo_url||null); setLogoRemoved(false)
     setView('edit')
+  }
+
+  const openDelete = id => {
+    setViewOrg(null)
+    setDeleteId(id)
   }
 
   const filtered = filterType==='All' ? organizations : organizations.filter(o=>o.type===filterType)
@@ -197,7 +347,6 @@ export default function Organizations() {
           </p>
 
           <div style={{ background:'var(--paper)', border:'1px solid var(--border)', borderRadius:16, padding:24, marginBottom:20 }}>
-            {/* Row 1: Name + Type */}
             <div className="org-form-grid2">
               <DField label="Organization Name" value={form.name} onChange={e=>set('name',e.target.value)}
                 placeholder="e.g. Springfield High School" required error={errors.name}/>
@@ -212,7 +361,6 @@ export default function Organizations() {
               </div>
             </div>
 
-            {/* Row 2: Address + Contact */}
             <div className="org-form-grid2">
               <DField label="Full Address" value={form.address} onChange={e=>set('address',e.target.value)}
                 placeholder="123 Main St, City, State" required error={errors.address}/>
@@ -220,7 +368,6 @@ export default function Organizations() {
                 placeholder="+91-9999999999" error={errors.contact}/>
             </div>
 
-            {/* Row 3: Email + Website */}
             <div className="org-form-grid2">
               <DField label="Email Address" value={form.email} onChange={e=>set('email',e.target.value)}
                 placeholder="contact@org.com" type="email" error={errors.email}/>
@@ -298,10 +445,7 @@ export default function Organizations() {
         .org-list-wrap { max-width: 1200px; margin: 0 auto; padding: 40px 32px; }
         .org-stats-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 12px; margin-bottom: 28px; }
         .org-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; }
-
-        @media (max-width: 900px) {
-          .org-stats-grid { grid-template-columns: repeat(3,1fr) !important; }
-        }
+        @media (max-width: 900px) { .org-stats-grid { grid-template-columns: repeat(3,1fr) !important; } }
         @media (max-width: 600px) {
           .org-list-wrap { padding: 20px 14px !important; }
           .org-stats-grid { grid-template-columns: repeat(2,1fr) !important; gap: 8px !important; }
@@ -325,7 +469,7 @@ export default function Organizations() {
           </button>
         </div>
 
-        {/* Stats cards */}
+        {/* Stats */}
         <div className="org-stats-grid">
           {ORG_TYPES.map(t => {
             const count = organizations.filter(o=>o.type===t).length
@@ -352,7 +496,7 @@ export default function Organizations() {
           ))}
         </div>
 
-        {/* Grid */}
+        {/* Card grid */}
         {filtered.length===0 ? (
           <div style={{ textAlign:'center', padding:'56px 24px' }}>
             <div style={{ fontSize:56, marginBottom:16 }}>🏢</div>
@@ -368,11 +512,16 @@ export default function Organizations() {
         ) : (
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:18 }}>
             {filtered.map(org => (
-              <OrgCard key={org.id} org={org} onEdit={openEdit} onDelete={setDeleteId}/>
+              <OrgCard key={org.id} org={org} onView={openView} onEdit={openEdit} onDelete={openDelete}/>
             ))}
           </div>
         )}
       </div>
+
+      {/* View panel */}
+      {viewOrg && (
+        <OrgViewPanel org={viewOrg} onClose={closeView} onEdit={openEdit} onDelete={openDelete}/>
+      )}
 
       <ConfirmDialog
         open={!!deleteId} onClose={()=>setDeleteId(null)}
