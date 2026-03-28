@@ -36,7 +36,7 @@ export default function About() {
         <Card style={{ padding:24, marginBottom:24 }}>
           <h2 style={{ fontFamily:'Outfit,sans-serif', fontSize:20, fontWeight:800, color:'var(--ink)', marginBottom:16 }}>Contact Us</h2>
           <div className="about-contact-grid">
-            {[['✉ Email','paragg10@yahoo.com'],['📞 Phone','9850360869, 9326037364'],['📍 Address','Saraipeth, Ashok Chowk, Near Durga Mata Mandir, Nagpur'],['🌐 Website','shriram-card.onrender.com']].map(([k,v])=>(
+            {[['✉ Email','ahefazsheikh@royalswebtechpvtltd.com'],['📞 Phone','9371072629'],['📍 Address','4th floor, A Wing, Block No. 8, Mangalwari Complex, near Government Polytechnic, Sadar, Nagpur, Maharashtra 440001'],['🌐 Website','shreeramidcardss.netlify.app']].map(([k,v])=>(
               <div key={k} style={{ padding:'12px 14px', background:'var(--paper2)', borderRadius:'var(--r)', border:'1px solid var(--border)' }}>
                 <div style={{ fontSize:12, fontWeight:700, color:'var(--ink2)', marginBottom:4 }}>{k}</div>
                 <div style={{ fontSize:13, color:'var(--ink)', fontWeight:500, wordBreak:'break-word' }}>{v}</div>
