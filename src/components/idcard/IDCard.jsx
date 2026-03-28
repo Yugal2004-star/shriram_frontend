@@ -178,7 +178,7 @@ const IDCard = forwardRef(function IDCard(
             }
           </div>
 
-          {/* Fields — rendered at exact saved positions */}
+          {/* Fields — rendered at exact saved positions, label : value style */}
           {visibleFields.map(f => {
             const pos = getPos(f.key)
             const val = sub[f.key]
@@ -187,11 +187,20 @@ const IDCard = forwardRef(function IDCard(
               <div key={f.key} style={{
                 position:'absolute', left:pos.x, top:pos.y,
                 padding:'2px 6px', zIndex:8,
+                display:'flex', alignItems:'baseline', gap:0,
               }}>
-                <div style={{ fontSize:8, fontWeight:700, color:'#bbb',
-                  textTransform:'uppercase', letterSpacing:.4 }}>{f.label}</div>
-                <div style={{ fontSize:12, fontWeight:600, color:'#1a1a2e',
-                  marginTop:1, whiteSpace:'nowrap' }}>{val}</div>
+                <span style={{
+                  fontSize:10, fontWeight:700, color:'#555',
+                  whiteSpace:'nowrap', minWidth:0,
+                }}>{f.label}</span>
+                <span style={{
+                  fontSize:10, fontWeight:700, color:'#555',
+                  margin:'0 4px', flexShrink:0,
+                }}>{' : '}</span>
+                <span style={{
+                  fontSize:11, fontWeight:600, color:'#1a1a2e',
+                  whiteSpace:'nowrap',
+                }}>{val}</span>
               </div>
             )
           })}
@@ -296,7 +305,7 @@ const IDCard = forwardRef(function IDCard(
             </div>
           </div>
 
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8,
+          <div style={{ display:'flex', flexDirection:'column', gap:6,
             paddingTop:10, borderTop:'1px solid #f0f0f0' }}>
             {[
               ['Date of Birth', sub.date_of_birth],
@@ -305,20 +314,14 @@ const IDCard = forwardRef(function IDCard(
               ['Emergency',     sub.emergency_contact],
               ['Department',    sub.department],
               ['Transport',     sub.mode_of_transport],
+              ['Address',       sub.address],
             ].map(([label, value]) => value ? (
-              <div key={label}>
-                <div style={{ fontSize:9, fontWeight:700, color:'#999',
-                  textTransform:'uppercase', letterSpacing:.4 }}>{label}</div>
-                <div style={{ fontSize:12, fontWeight:600, color:'#1a1a2e', marginTop:1 }}>{value}</div>
+              <div key={label} style={{ display:'flex', alignItems:'baseline', gap:0 }}>
+                <span style={{ fontSize:10, fontWeight:700, color:'#555', whiteSpace:'nowrap', minWidth:72 }}>{label}</span>
+                <span style={{ fontSize:10, fontWeight:700, color:'#555', margin:'0 4px', flexShrink:0 }}>{' : '}</span>
+                <span style={{ fontSize:11, fontWeight:600, color:'#1a1a2e' }}>{value}</span>
               </div>
             ) : null)}
-            {sub.address && (
-              <div style={{ gridColumn:'1/-1' }}>
-                <div style={{ fontSize:9, fontWeight:700, color:'#999',
-                  textTransform:'uppercase', letterSpacing:.4 }}>Address</div>
-                <div style={{ fontSize:12, fontWeight:600, color:'#1a1a2e', marginTop:1 }}>{sub.address}</div>
-              </div>
-            )}
           </div>
         </div>
 
