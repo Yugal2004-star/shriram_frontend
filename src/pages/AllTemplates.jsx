@@ -75,12 +75,13 @@ export default function AllTemplates() {
   const { submissions, loading, deleteSubmission } = useSubmissions()
   const { organizations } = useOrganizations()
   const navigate          = useNavigate()
-  const { templates }     = useCardTemplates()
+  const { templates, deleteTemplate } = useCardTemplates()
 
   const [templateId,     setTemplateId]     = useState('T1')
   const [customTemplate, setCustomTemplate] = useState(null)
   const [school,         setSchool]         = useState('All')
-  const [deleteId,       setDeleteId]       = useState(null)
+  const [deleteId,       setDeleteId]       = useState(null)   // submission delete
+  const [deleteTplId,    setDeleteTplId]    = useState(null)   // template delete
   const [leftOpen,       setLeftOpen]       = useState(false)
   const [rightOpen,      setRightOpen]      = useState(false)
   const cardRefs = useRef({})
@@ -165,21 +166,55 @@ export default function AllTemplates() {
                 style={{ borderRadius:'var(--r)', border:`2px solid ${isSelected?'var(--blue)':'var(--border)'}`,
                   overflow:'hidden', marginBottom:8, cursor:'pointer', transition:'all .18s',
                   boxShadow:isSelected?'0 0 0 3px rgba(35,82,255,.15)':'none' }}>
+                {/* Header strip */}
                 <div style={{ height:48, background:bgStyle, display:'flex',
                   alignItems:'center', justifyContent:'space-between', padding:'0 10px' }}>
                   <span style={{ fontSize:11, fontWeight:700, color:'#fff', overflow:'hidden',
-                    textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:110 }}>{t.name}</span>
+                    textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:100 }}>{t.name}</span>
                   <div style={{ display:'flex', gap:3 }}>
                     {c.c1 && <div style={{ width:9, height:9, borderRadius:'50%', background:c.c1, border:'1.5px solid rgba(255,255,255,.5)' }}/>}
                     {c.c2 && <div style={{ width:9, height:9, borderRadius:'50%', background:c.c2, border:'1.5px solid rgba(255,255,255,.5)' }}/>}
                   </div>
                 </div>
-                <div style={{ padding:'5px 8px', fontSize:10, fontWeight:600,
+                {/* Footer: status + field count */}
+                <div style={{ padding:'5px 8px 4px', fontSize:10, fontWeight:600,
                   color:isSelected?'var(--blue)':'var(--ink3)',
                   background:isSelected?'var(--blue-s)':'var(--paper)',
                   display:'flex', justifyContent:'space-between' }}>
-                  <span>{isSelected?'✓ Selected':'Click to select'}</span>
+                  <span>{isSelected ? '✓ Selected' : 'Click to select'}</span>
                   <span>{c.visibleFields?.length||0} fields</span>
+                </div>
+                {/* Edit + Delete action row */}
+                <div
+                  onClick={e => e.stopPropagation()}
+                  style={{ display:'flex', gap:6, padding:'5px 8px 7px',
+                    background:isSelected ? 'var(--blue-s)' : 'var(--paper)',
+                    borderTop:`1px solid ${isSelected ? 'var(--blue-m)' : 'var(--border)'}` }}>
+                  <button
+                    onClick={e => {
+                      e.stopPropagation()
+                      navigate(`/card-builder?edit=${t.id}`)
+                      setLeftOpen(false)
+                    }}
+                    style={{ flex:1, height:26, borderRadius:6,
+                      border:'1.5px solid var(--blue-m)', background:'var(--blue-s)',
+                      color:'var(--blue)', fontSize:11, fontWeight:700,
+                      cursor:'pointer', fontFamily:'inherit', display:'flex',
+                      alignItems:'center', justifyContent:'center', gap:4 }}>
+                    ✎ Edit
+                  </button>
+                  <button
+                    onClick={e => {
+                      e.stopPropagation()
+                      setDeleteTplId(t.id)
+                    }}
+                    style={{ flex:1, height:26, borderRadius:6,
+                      border:'1.5px solid var(--red-m, #fca5a5)', background:'var(--red-s)',
+                      color:'var(--red)', fontSize:11, fontWeight:700,
+                      cursor:'pointer', fontFamily:'inherit', display:'flex',
+                      alignItems:'center', justifyContent:'center', gap:4 }}>
+                    🗑 Delete
+                  </button>
                 </div>
               </div>
             )
@@ -447,6 +482,19 @@ export default function AllTemplates() {
         onConfirm={() => deleteSubmission(deleteId)} title="Delete ID Card"
         message="This will permanently delete this submission and ID card."
         confirmLabel="Delete" danger/>
+
+      <ConfirmDialog open={!!deleteTplId} onClose={() => setDeleteTplId(null)}
+        onConfirm={async () => {
+          await deleteTemplate(deleteTplId)
+          if (customTemplate?.id === deleteTplId) {
+            setCustomTemplate(null)
+            setTemplateId('T1')
+          }
+          setDeleteTplId(null)
+        }}
+        title="Delete Template"
+        message="This will permanently delete this template. Cards already generated with it won't be affected."
+        confirmLabel="Delete Template" danger/>
     </div>
   )
 }

@@ -1,5 +1,5 @@
-import { useState, useCallback, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useCallback, useRef, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useSubmissions } from '../hooks/useSubmissions'
 import { useOrganizations } from '../hooks/useOrganizations'
 import { useCardTemplates } from '../hooks/useCardtemplates'
@@ -471,10 +471,13 @@ function AlignToolbar({ selected, multiSelected, config, onAlignOne, onAlignMult
    MAIN BUILDER
 ══════════════════════════════════════════════════════════ */
 export default function IDCardBuilder() {
-  const navigate = useNavigate()
+  const navigate     = useNavigate()
+  const [searchParams] = useSearchParams()
+  const editId         = searchParams.get('edit')   // present when editing an existing template
+
   const { submissions, loading: subLoading } = useSubmissions()
   const { organizations }                    = useOrganizations()
-  const { saveTemplate }                     = useCardTemplates()
+  const { templates, saveTemplate, updateTemplate } = useCardTemplates()
 
   const [config,        setConfig]       = useState(DEFAULT_CONFIG)
   const [templateName,  setTemplateName] = useState('')
@@ -486,7 +489,19 @@ export default function IDCardBuilder() {
   const [selected,      setSelected]     = useState(null)
   const [multiSelected, setMultiSelected]= useState([])
   const [panelOpen,     setPanelOpen]    = useState(false)
-  const bgInputRef = useRef(null)
+  const bgInputRef    = useRef(null)
+  const editLoaded    = useRef(false)   // prevents re-loading on every templates update
+
+  /* ── Load existing template when ?edit=ID is present ── */
+  useEffect(() => {
+    if (!editId || !templates.length || editLoaded.current) return
+    const tpl = templates.find(t => t.id === editId)
+    if (!tpl) { toast.error('Template not found'); return }
+    editLoaded.current = true
+    setTemplateName(tpl.name || '')
+    setSelectedOrg(tpl.org_id || '')
+    setConfig({ ...DEFAULT_CONFIG, ...(tpl.config || {}) })
+  }, [editId, templates])
 
   const approved   = submissions.filter(s => s.status==='approved')
   const previewSub = approved[previewIdx] || null
@@ -551,8 +566,15 @@ export default function IDCardBuilder() {
     if (config.visibleFields.length===0) { toast.error('Add at least one field'); return }
     setSaving(true)
     try {
-      await saveTemplate({ name:templateName.trim(), org_id:selectedOrg||null, org_name:orgName||null, config })
-      toast.success(`"${templateName.trim()}" saved!`)
+      if (editId) {
+        /* ── UPDATE existing template ── */
+        await updateTemplate(editId, { name:templateName.trim(), org_id:selectedOrg||null, org_name:orgName||null, config })
+        toast.success(`"${templateName.trim()}" updated!`)
+      } else {
+        /* ── CREATE new template ── */
+        await saveTemplate({ name:templateName.trim(), org_id:selectedOrg||null, org_name:orgName||null, config })
+        toast.success(`"${templateName.trim()}" saved!`)
+      }
       navigate('/templates')
     } catch (err) { toast.error(err.message||'Failed') }
     finally { setSaving(false) }
@@ -886,6 +908,15 @@ export default function IDCardBuilder() {
         <div style={{ display:'flex', alignItems:'center', gap:10, flex:1, minWidth:0 }}>
           <button onClick={() => navigate(-1)}
             style={{ padding:'6px 10px', borderRadius:8, border:'1.5px solid var(--border)', background:'var(--paper2)', color:'var(--ink2)', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'inherit', flexShrink:0 }}>← Back</button>
+
+          {/* Edit mode badge */}
+          {editId && (
+            <div style={{ flexShrink:0, padding:'4px 10px', borderRadius:20, background:'var(--amber-s)',
+              border:'1px solid #fcd34d', fontSize:11, fontWeight:700, color:'#b45309', whiteSpace:'nowrap' }}>
+              ✎ Editing template
+            </div>
+          )}
+
           <input value={templateName} onChange={e => setTemplateName(e.target.value)}
             placeholder="Template name..."
             style={{ flex:1, border:'1.5px solid var(--border)', borderRadius:8, fontSize:14, fontWeight:700, color:'var(--ink)', background:'var(--paper2)', outline:'none', fontFamily:'Outfit,sans-serif', padding:'7px 10px', transition:'border .15s', minWidth:0 }}
@@ -909,8 +940,11 @@ export default function IDCardBuilder() {
           <button onClick={resetLayout}
             style={{ padding:'6px 10px', borderRadius:8, border:'1.5px solid var(--border)', background:'transparent', color:'var(--ink2)', fontSize:12, cursor:'pointer', fontFamily:'inherit', fontWeight:600 }}>↺ Reset</button>
           <button onClick={handleSave} disabled={saving}
-            style={{ padding:'7px 14px', borderRadius:8, border:'none', background:saving?'var(--border2)':'#2352ff', color:'#fff', fontSize:13, fontWeight:700, cursor:saving?'not-allowed':'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }}>
-            {saving?'⏳':'💾 Save'}
+            style={{ padding:'7px 14px', borderRadius:8, border:'none',
+              background: saving ? 'var(--border2)' : editId ? '#b45309' : '#2352ff',
+              color:'#fff', fontSize:13, fontWeight:700,
+              cursor:saving?'not-allowed':'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }}>
+            {saving ? '⏳' : editId ? '💾 Update' : '💾 Save'}
           </button>
         </div>
       </div>
