@@ -54,7 +54,7 @@ const DEFAULT_CONFIG = {
   c1:'#2352ff', c2:'#1538d4', accent:'#e8ecff',
   photoShape:'rounded', showHeader:true, showBarcode:true,
   headerStyle:'gradient', logoPosition:'left',
-  borderStyle:'thin', fontSize:'md', orientation:'portrait',
+  borderStyle:'thin', fontSize:11, orientation:'portrait',
   sizePreset:'standard', cardW:340, cardH:480,
   bgImage:null, bgOpacity:0.15, bgFit:'cover',
   visibleFields:['name','class','roll_number','blood_group','contact_number'],
@@ -229,6 +229,8 @@ function CardCanvas({ config, sub, orgName, onMove, selected, onSelect, multiSel
         const val   = sub?.[f.key] || `[${f.label}]`
         const isSel = selected===f.key
         const isMul = multiSelected?.includes(f.key)
+        const fSize = config.fontSize||11
+        const lSize = Math.max(fSize-1, 7)
         return (
           <div key={f.key}
             onMouseDown={e => startDrag(e, f.key, pos.x, pos.y)}
@@ -238,8 +240,11 @@ function CardCanvas({ config, sub, orgName, onMove, selected, onSelect, multiSel
               border: isSel ? `1.5px dashed ${config.c1}` : isMul ? '1.5px dashed #f59e0b' : '1.5px dashed transparent',
               background: isSel ? `${config.c1}11` : isMul ? '#fef3c722' : 'transparent',
               cursor:'grab', transition:'border .15s, background .15s' }}>
-            <div style={{ fontSize:8, fontWeight:700, color:'#aaa', textTransform:'uppercase', letterSpacing:.4 }}>{f.label}</div>
-            <div style={{ fontSize:12, fontWeight:600, color:'#1a1a2e', marginTop:1, whiteSpace:'nowrap' }}>{val}</div>
+            <div style={{ display:'flex', alignItems:'baseline', gap:0 }}>
+              <span style={{ fontSize:lSize, fontWeight:700, color:'#555', whiteSpace:'nowrap' }}>{f.label}</span>
+              <span style={{ fontSize:lSize, fontWeight:700, color:'#555', margin:'0 3px' }}>{' : '}</span>
+              <span style={{ fontSize:fSize, fontWeight:600, color:'#1a1a2e', whiteSpace:'nowrap' }}>{val}</span>
+            </div>
             {isSel && (
               <div style={{ position:'absolute', top:-16, left:0, fontSize:9, color:config.c1,
                 fontWeight:700, whiteSpace:'nowrap', background:'#fff', padding:'1px 5px',
@@ -860,12 +865,19 @@ export default function IDCardBuilder() {
               </div>
             </div>
             <div style={{ marginBottom:14 }}>
-              <div style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', textTransform:'uppercase', letterSpacing:.6, marginBottom:7 }}>Font Size</div>
-              <div style={{ display:'flex', gap:8 }}>
-                {[['sm','Small'],['md','Med'],['lg','Large']].map(([v,l])=>(
-                  <button key={v} onClick={()=>upd('fontSize',v)}
-                    style={{ flex:1, padding:'8px 4px', borderRadius:8, border:`1.5px solid ${config.fontSize===v?'var(--blue)':'var(--border)'}`, background:config.fontSize===v?'var(--blue-s)':'transparent', color:config.fontSize===v?'var(--blue)':'var(--ink3)', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>{l}</button>
-                ))}
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
+                <div style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', textTransform:'uppercase', letterSpacing:.6 }}>Field Font Size</div>
+                <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                  <span style={{ fontSize:11, fontFamily:'JetBrains Mono,monospace', color:'var(--blue)', fontWeight:700, background:'var(--blue-s)', borderRadius:6, padding:'2px 8px', border:'1px solid var(--blue-m)' }}>{config.fontSize||11}px</span>
+                </div>
+              </div>
+              <input type="range" min={8} max={20} step={1}
+                value={config.fontSize||11}
+                onChange={e=>upd('fontSize',Number(e.target.value))}
+                style={{ width:'100%', accentColor:'#2352ff', cursor:'pointer' }}/>
+              <div style={{ display:'flex', justifyContent:'space-between', marginTop:3 }}>
+                <span style={{ fontSize:9, color:'var(--ink3)' }}>8px · Tiny</span>
+                <span style={{ fontSize:9, color:'var(--ink3)' }}>20px · Large</span>
               </div>
             </div>
             {[['showHeader','Show Header','College name, logo & role'],['showBarcode','Show Barcode','Footer barcode strip']].map(([key,title,desc])=>(

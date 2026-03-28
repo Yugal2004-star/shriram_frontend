@@ -1,5 +1,7 @@
 import { forwardRef } from 'react'
 
+/* ── fontSize is now stored as a raw number (e.g. 11) in config ── */
+
 /* ── Built-in templates (used when no customConfig) ── */
 const TEMPLATES = {
   T1: { name: 'Royal Blue',  c1: '#2352ff', c2: '#1538d4', accent: '#e8ecff' },
@@ -178,29 +180,22 @@ const IDCard = forwardRef(function IDCard(
             }
           </div>
 
-          {/* Fields — rendered at exact saved positions, label : value style */}
+          {/* Fields — rendered at exact saved positions, Label : Value inline */}
           {visibleFields.map(f => {
-            const pos = getPos(f.key)
-            const val = sub[f.key]
+            const pos   = getPos(f.key)
+            const val   = sub[f.key]
             if (!val) return null
+            const fSize = c.fontSize || 11
+            const lSize = Math.max(fSize - 1, 7)
             return (
               <div key={f.key} style={{
                 position:'absolute', left:pos.x, top:pos.y,
                 padding:'2px 6px', zIndex:8,
                 display:'flex', alignItems:'baseline', gap:0,
               }}>
-                <span style={{
-                  fontSize:10, fontWeight:700, color:'#555',
-                  whiteSpace:'nowrap', minWidth:0,
-                }}>{f.label}</span>
-                <span style={{
-                  fontSize:10, fontWeight:700, color:'#555',
-                  margin:'0 4px', flexShrink:0,
-                }}>{' : '}</span>
-                <span style={{
-                  fontSize:11, fontWeight:600, color:'#1a1a2e',
-                  whiteSpace:'nowrap',
-                }}>{val}</span>
+                <span style={{ fontSize:lSize, fontWeight:700, color:'#555', whiteSpace:'nowrap' }}>{f.label}</span>
+                <span style={{ fontSize:lSize, fontWeight:700, color:'#555', margin:'0 3px', flexShrink:0 }}>{' : '}</span>
+                <span style={{ fontSize:fSize, fontWeight:600, color:'#1a1a2e', whiteSpace:'nowrap' }}>{val}</span>
               </div>
             )
           })}
@@ -305,7 +300,7 @@ const IDCard = forwardRef(function IDCard(
             </div>
           </div>
 
-          <div style={{ display:'flex', flexDirection:'column', gap:6,
+          <div style={{ display:'flex', flexDirection:'column', gap:5,
             paddingTop:10, borderTop:'1px solid #f0f0f0' }}>
             {[
               ['Date of Birth', sub.date_of_birth],
@@ -318,7 +313,7 @@ const IDCard = forwardRef(function IDCard(
             ].map(([label, value]) => value ? (
               <div key={label} style={{ display:'flex', alignItems:'baseline', gap:0 }}>
                 <span style={{ fontSize:10, fontWeight:700, color:'#555', whiteSpace:'nowrap', minWidth:72 }}>{label}</span>
-                <span style={{ fontSize:10, fontWeight:700, color:'#555', margin:'0 4px', flexShrink:0 }}>{' : '}</span>
+                <span style={{ fontSize:10, fontWeight:700, color:'#555', margin:'0 3px', flexShrink:0 }}>{' : '}</span>
                 <span style={{ fontSize:11, fontWeight:600, color:'#1a1a2e' }}>{value}</span>
               </div>
             ) : null)}
