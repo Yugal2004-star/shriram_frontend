@@ -108,6 +108,7 @@ export default function Organizations() {
   const [errors,      setErrors]      = useState({})
   const [logoFile,    setLogoFile]    = useState(null)
   const [logoPreview, setLogoPreview] = useState(null)
+  const [logoRemoved,  setLogoRemoved]  = useState(false)
   const [saving,      setSaving]      = useState(false)
   const [deleteId,    setDeleteId]    = useState(null)
   const [filterType,  setFilterType]  = useState('All')
@@ -119,6 +120,7 @@ export default function Organizations() {
     const file = e.target.files?.[0]; if(!file) return
     if(file.size > 2*1024*1024) { toast.error('Logo too large. Max 2MB.'); return }
     setLogoFile(file)
+    setLogoRemoved(false)
     const r = new FileReader(); r.onload = ev => setLogoPreview(ev.target.result); r.readAsDataURL(file)
     e.target.value = ''
   }
@@ -133,7 +135,7 @@ export default function Organizations() {
     setErrors(e); return Object.keys(e).length === 0
   }
 
-  const resetForm = () => { setForm(EMPTY_FORM); setErrors({}); setLogoFile(null); setLogoPreview(null); setEditOrg(null); setView('list') }
+  const resetForm = () => { setForm(EMPTY_FORM); setErrors({}); setLogoFile(null); setLogoPreview(null); setLogoRemoved(false); setEditOrg(null); setView('list') }
 
   const handleSave = async () => {
     if(!validate()) return
@@ -150,7 +152,7 @@ export default function Organizations() {
     if(!form.name.trim()) { setErrors({name:'Name is required'}); return }
     setSaving(true)
     try {
-      await updateOrganization(editOrg.id, form, logoFile)   // ← pass logoFile
+      await updateOrganization(editOrg.id, form, logoFile, logoRemoved)   // ← pass logoFile
       toast.success('Organization updated!')
       resetForm()
     } catch(err) { toast.error(err.message || 'Failed to update') }
@@ -160,7 +162,7 @@ export default function Organizations() {
   const openEdit = org => {
     setEditOrg(org)
     setForm({ name:org.name||'', type:org.type||'School', address:org.address||'', contact:org.contact||'', email:org.email||'', website:org.website||'' })
-    setErrors({}); setLogoFile(null); setLogoPreview(org.logo_url||null)
+    setErrors({}); setLogoFile(null); setLogoPreview(org.logo_url||null); setLogoRemoved(false)
     setView('edit')
   }
 
@@ -248,7 +250,7 @@ export default function Organizations() {
                   </div>
                   <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
                     <button onClick={()=>logoRef.current?.click()} style={{ padding:'6px 12px', borderRadius:7, border:'1px solid var(--border)', background:'var(--paper2)', color:'var(--ink2)', cursor:'pointer', fontSize:12, fontWeight:600 }}>🔄 Change</button>
-                    <button onClick={()=>{setLogoFile(null);setLogoPreview(null)}} style={{ padding:'6px 12px', borderRadius:7, border:'1px solid var(--border)', background:'var(--red-s)', color:'var(--red)', cursor:'pointer', fontSize:12, fontWeight:600 }}>🗑 Remove</button>
+                    <button onClick={()=>{setLogoFile(null);setLogoPreview(null);setLogoRemoved(true)}} style={{ padding:'6px 12px', borderRadius:7, border:'1px solid var(--border)', background:'var(--red-s)', color:'var(--red)', cursor:'pointer', fontSize:12, fontWeight:600 }}>🗑 Remove</button>
                   </div>
                   <input type="file" ref={logoRef} accept="image/jpeg,image/png,image/webp" onChange={handleLogo} style={{ display:'none' }}/>
                 </div>

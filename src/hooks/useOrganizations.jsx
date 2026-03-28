@@ -68,7 +68,15 @@ export function OrganizationsProvider({ children }) {
           body: form,
         })
         const logoJson  = await logoRes.json()
-        if (logoRes.ok) org = logoJson.data
+        if (logoRes.ok) {
+          // FIX: append cache-busting timestamp so the browser doesn't show stale logo
+          org = {
+            ...logoJson.data,
+            logo_url: logoJson.data.logo_url
+              ? `${logoJson.data.logo_url}?t=${Date.now()}`
+              : null,
+          }
+        }
       } catch (err) {
         console.warn('Logo upload failed:', err.message)
         toast.error('Organization saved but logo upload failed.')
@@ -78,12 +86,32 @@ export function OrganizationsProvider({ children }) {
     return org
   }
 
-  const updateOrganization = async (id, updates, logoFile = null) => {
+  const updateOrganization = async (id, updates, logoFile = null, removeLogo = false) => {
     /* 1. Save text fields first */
     let res = await apiFetch(`/organizations/${id}`, { method: 'PATCH', body: JSON.stringify(updates) })
     let org = res.data
 
-    /* 2. Upload new logo if one was selected */
+    /* 2. FIX: If the user explicitly removed the logo, clear it via a dedicated call */
+    if (removeLogo && !logoFile) {
+      try {
+        const token = await getToken()
+        const removeRes = await fetch(`${BASE_URL}/organizations/${id}/logo`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        })
+        const removeJson = await removeRes.json()
+        if (removeRes.ok) org = removeJson.data
+        else console.warn('Logo removal failed:', removeJson)
+      } catch (err) {
+        console.warn('Logo removal error:', err.message)
+        toast.error('Organization updated but logo removal failed.')
+      }
+    }
+
+    /* 3. Upload new logo if one was selected */
     if (logoFile) {
       try {
         const { data: { session } } = await supabase.auth.getSession()
@@ -96,8 +124,17 @@ export function OrganizationsProvider({ children }) {
           body: form,
         })
         const logoJson = await logoRes.json()
-        if (logoRes.ok) org = logoJson.data
-        else console.warn('Logo upload failed:', logoJson)
+        if (logoRes.ok) {
+          // FIX: append cache-busting timestamp so the browser doesn't show stale logo
+          org = {
+            ...logoJson.data,
+            logo_url: logoJson.data.logo_url
+              ? `${logoJson.data.logo_url}?t=${Date.now()}`
+              : null,
+          }
+        } else {
+          console.warn('Logo upload failed:', logoJson)
+        }
       } catch (err) {
         console.warn('Logo upload error:', err.message)
         toast.error('Organization updated but logo upload failed.')
