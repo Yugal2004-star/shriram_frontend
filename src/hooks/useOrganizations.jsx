@@ -53,6 +53,7 @@ export function OrganizationsProvider({ children }) {
         contact: formData.contact || null,
         email:   formData.email   || null,
         website: formData.website || null,
+        classes_config: formData.classes_config || null,  // ← ADD THIS
       }),
     })
     let org = res.data
@@ -88,7 +89,12 @@ export function OrganizationsProvider({ children }) {
 
   const updateOrganization = async (id, updates, logoFile = null, removeLogo = false) => {
     /* 1. Save text fields first */
-    let res = await apiFetch(`/organizations/${id}`, { method: 'PATCH', body: JSON.stringify(updates) })
+    let res = await apiFetch(`/organizations/${id}`, { method: 'PATCH',
+       body: JSON.stringify({
+        updates,
+        classes_config: updates.classes_config || null,
+      })
+     })
     let org = res.data
 
     /* 2. FIX: If the user explicitly removed the logo, clear it via a dedicated call */

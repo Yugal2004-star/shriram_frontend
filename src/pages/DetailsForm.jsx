@@ -221,36 +221,78 @@ function CropModal({ open, imageUrl, onDone, onClose }) {
 }
 
 /* ── RenderField — module-level (prevents focus loss bug) ──────── */
-function RenderField({ f, formData, errors, update }) {
-  const meta=FIELD_META[f]; if(!meta) return null
-  const val=formData[f]||'', hasErr=Boolean(errors[f])
-  const label=(
+function RenderField({ f, formData, errors, update, orgClassesConfig = [] }) {
+  const meta = FIELD_META[f]; if (!meta) return null
+  const val = formData[f] || '', hasErr = Boolean(errors[f])
+
+  const label = (
     <label style={{ display:'block', fontSize:11, fontWeight:700, color:'var(--ink3)', textTransform:'uppercase', letterSpacing:.5, marginBottom:6 }}>
-      {meta.icon} {meta.label}{meta.required&&<span style={{ color:'var(--red)',marginLeft:3 }}>*</span>}
+      {meta.icon} {meta.label}{meta.required && <span style={{ color:'var(--red)', marginLeft:3 }}>*</span>}
     </label>
   )
-  const errMsg=hasErr&&<p style={{ fontSize:11,color:'var(--red)',marginTop:4 }}>{errors[f]}</p>
-  if(meta.type==='select') return(
+  const errMsg = hasErr && <p style={{ fontSize:11, color:'var(--red)', marginTop:4 }}>{errors[f]}</p>
+
+  // ── Smart ClassN dropdown ──
+  if (f === 'ClassN' && orgClassesConfig.length > 0) {
+    return (
+      <div>
+        {label}
+        <select value={val} onChange={e => { update('ClassN', e.target.value); update('Section', '') }}
+          onFocus={onFocusField} onBlur={e => onBlurField(e, hasErr)}
+          style={{ ...inputStyle(hasErr), cursor:'pointer', color: val ? 'var(--ink)' : 'var(--ink3)' }}>
+          <option value="">-- Select Class --</option>
+          {orgClassesConfig.map(c => (
+            <option key={c.name} value={c.name}>{c.name}</option>
+          ))}
+        </select>
+        {errMsg}
+      </div>
+    )
+  }
+
+  // ── Smart Section dropdown (depends on selected class) ──
+  if (f === 'Section' && orgClassesConfig.length > 0) {
+    const selectedClass = orgClassesConfig.find(c => c.name === formData['ClassN'])
+    const sections = selectedClass?.sections || []
+    return (
+      <div>
+        {label}
+        <select value={val} onChange={e => update('Section', e.target.value)}
+          onFocus={onFocusField} onBlur={e => onBlurField(e, hasErr)}
+          disabled={!formData['ClassN']}
+          style={{ ...inputStyle(hasErr), cursor: formData['ClassN'] ? 'pointer' : 'not-allowed', color: val ? 'var(--ink)' : 'var(--ink3)', opacity: formData['ClassN'] ? 1 : 0.6 }}>
+          <option value="">{formData['ClassN'] ? '-- Select Section --' : '-- Select Class first --'}</option>
+          {sections.map(s => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </select>
+        {errMsg}
+      </div>
+    )
+  }
+
+  // ── All other fields unchanged ──
+  if (meta.type === 'select') return (
     <div>
       {label}
-      <select value={val} onChange={e=>update(f,e.target.value)} onFocus={onFocusField} onBlur={e=>onBlurField(e,hasErr)}
-        style={{ ...inputStyle(hasErr),cursor:'pointer',color:val?'var(--ink)':'var(--ink3)' }}>
-        {meta.options.map(o=><option key={o} value={o}>{o||`-- Select ${meta.label} --`}</option>)}
+      <select value={val} onChange={e => update(f, e.target.value)} onFocus={onFocusField} onBlur={e => onBlurField(e, hasErr)}
+        style={{ ...inputStyle(hasErr), cursor:'pointer', color: val ? 'var(--ink)' : 'var(--ink3)' }}>
+        {meta.options.map(o => <option key={o} value={o}>{o || `-- Select ${meta.label} --`}</option>)}
       </select>{errMsg}
     </div>
   )
-  if(meta.type==='textarea') return(
+  if (meta.type === 'textarea') return (
     <div style={{ gridColumn:'1 / -1' }}>
       {label}
-      <textarea value={val} onChange={e=>update(f,e.target.value)} onFocus={onFocusField} onBlur={e=>onBlurField(e,hasErr)}
-        placeholder={`Enter ${meta.label.toLowerCase()}`} rows={3} style={{ ...inputStyle(hasErr),resize:'vertical' }}/>{errMsg}
+      <textarea value={val} onChange={e => update(f, e.target.value)} onFocus={onFocusField} onBlur={e => onBlurField(e, hasErr)}
+        placeholder={`Enter ${meta.label.toLowerCase()}`} rows={3} style={{ ...inputStyle(hasErr), resize:'vertical' }}/>{errMsg}
     </div>
   )
-  return(
+  return (
     <div>
       {label}
-      <input type={meta.type} value={val} onChange={e=>update(f,e.target.value)} onFocus={onFocusField} onBlur={e=>onBlurField(e,hasErr)}
-        placeholder={meta.type==='date'?'':`Enter ${meta.label.toLowerCase()}`} style={inputStyle(hasErr)}/>{errMsg}
+      <input type={meta.type} value={val} onChange={e => update(f, e.target.value)} onFocus={onFocusField} onBlur={e => onBlurField(e, hasErr)}
+        placeholder={meta.type === 'date' ? '' : `Enter ${meta.label.toLowerCase()}`} style={inputStyle(hasErr)}/>{errMsg}
     </div>
   )
 }
@@ -286,6 +328,29 @@ export default function DetailsForm() {
       .finally(() => { if(!cancelled) setConfigLoad(false) })
     return () => { cancelled=true }
   }, [urlId])
+
+  const [orgClassesConfig, setOrgClassesConfig] = useState([])
+
+useEffect(() => {
+  if (!urlId) { setNotFound(true); setConfigLoad(false); return }
+  let cancelled = false
+  formConfigsApi.getByUrlId(urlId)
+    .then(async res => {
+      if (cancelled) return
+      setConfig(res.data)
+      // Fetch org classes_config by school name
+      try {
+        const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+        const orgRes = await fetch(`${BASE_URL}/organizations?name=${encodeURIComponent(res.data.school_name)}`)
+        const orgJson = await orgRes.json()
+        const org = orgJson.data?.[0]
+        if (org?.classes_config) setOrgClassesConfig(org.classes_config)
+      } catch { /* silently ignore — fallback to text input */ }
+    })
+    .catch(() => { if (!cancelled) setNotFound(true) })
+    .finally(() => { if (!cancelled) setConfigLoad(false) })
+  return () => { cancelled = true }
+}, [urlId])
 
   const schoolName = config?.school_name ?? ''
   const hasPhoto   = config?.fields?.includes('UploadYourPhoto') ?? false
@@ -455,11 +520,11 @@ export default function DetailsForm() {
 
             {/* ── All data fields in one grid ── */}
             <div className="df-grid">
-              {dataFields.map(f => (
-                <div key={f} data-has-error={Boolean(errors[f])?'true':'false'}>
-                  <RenderField f={f} formData={formData} errors={errors} update={update}/>
-                </div>
-              ))}
+            {dataFields.map(f => (
+              <div key={f} data-has-error={Boolean(errors[f]) ? 'true' : 'false'}>
+                <RenderField f={f} formData={formData} errors={errors} update={update} orgClassesConfig={orgClassesConfig} />
+              </div>
+            ))}
             </div>
 
             {/* ── Declaration checkbox ── */}

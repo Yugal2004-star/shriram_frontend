@@ -6,7 +6,7 @@ import toast from 'react-hot-toast'
 /* ── Constants ────────────────────────────────────────────────── */
 const ORG_TYPES  = ['School','College','Industry','Company','Hospital','Custom']
 const ORG_ICONS  = { School:'🏫', College:'🎓', Industry:'🏭', Company:'💼', Hospital:'🏥', Custom:'✏️' }
-const EMPTY_FORM = { name:'', type:'School', address:'', contact:'', email:'', website:'' }
+const EMPTY_FORM = { name:'', type:'School', address:'', contact:'', email:'', website:'', classes_config:[] }
 const fmtDate    = d => d ? new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—'
 
 function dInput(hasErr=false) {
@@ -234,6 +234,98 @@ function OrgViewPanel({ org, onClose, onEdit, onDelete }) {
   )
 }
 
+const CLASS_SECTIONS_APPLICABLE = ['School', 'College']
+
+function ClassesConfig({ value = [], onChange }) {
+  // value = [{ name: '1', sections: ['A','B','C'] }, ...]
+  const addClass = () => {
+    onChange([...value, { name: '', sections: ['A'] }])
+  }
+  const removeClass = (ci) => {
+    onChange(value.filter((_, i) => i !== ci))
+  }
+  const updateClassName = (ci, name) => {
+    onChange(value.map((c, i) => i === ci ? { ...c, name } : c))
+  }
+  const addSection = (ci) => {
+    onChange(value.map((c, i) => i === ci ? { ...c, sections: [...c.sections, ''] } : c))
+  }
+  const removeSection = (ci, si) => {
+    onChange(value.map((c, i) => i === ci ? { ...c, sections: c.sections.filter((_, j) => j !== si) } : c))
+  }
+  const updateSection = (ci, si, val) => {
+    onChange(value.map((c, i) => i === ci ? { ...c, sections: c.sections.map((s, j) => j === si ? val : s) } : c))
+  }
+
+  return (
+    <div>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+        <DLabel>Classes & Sections</DLabel>
+        <button onClick={addClass}
+          style={{ padding:'5px 12px', borderRadius:7, border:'1.5px solid var(--blue)', background:'var(--blue-s)', color:'var(--blue)', cursor:'pointer', fontSize:12, fontWeight:700 }}>
+          + Add Class
+        </button>
+      </div>
+
+      {value.length === 0 ? (
+        <div style={{ textAlign:'center', padding:'20px', background:'var(--paper2)', borderRadius:10, border:'1px dashed var(--border2)', color:'var(--ink3)', fontSize:13 }}>
+          No classes added yet. Click "+ Add Class" to start.
+        </div>
+      ) : (
+        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+          {value.map((cls, ci) => (
+            <div key={ci} style={{ background:'var(--paper2)', borderRadius:10, border:'1px solid var(--border)', padding:14 }}>
+              {/* Class name row */}
+              <div style={{ display:'flex', gap:8, alignItems:'center', marginBottom:10 }}>
+                <span style={{ fontSize:16 }}>🏫</span>
+                <input
+                  value={cls.name}
+                  onChange={e => updateClassName(ci, e.target.value)}
+                  placeholder="Class name (e.g. 1, 2, 10, LKG...)"
+                  style={{ ...dInput(false), flex:1 }}
+                  onFocus={onFocusDark} onBlur={e => onBlurDark(e, false)}
+                />
+                <button onClick={() => removeClass(ci)}
+                  style={{ width:32, height:32, borderRadius:7, border:'1px solid var(--border)', background:'var(--red-s)', color:'var(--red)', cursor:'pointer', fontSize:14, flexShrink:0 }}>
+                  🗑
+                </button>
+              </div>
+
+              {/* Sections */}
+              <div style={{ paddingLeft:24 }}>
+                <div style={{ fontSize:11, fontWeight:600, color:'var(--ink3)', marginBottom:6 }}>Sections:</div>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:6, alignItems:'center' }}>
+                  {cls.sections.map((sec, si) => (
+                    <div key={si} style={{ display:'flex', alignItems:'center', gap:4, background:'var(--paper)', borderRadius:6, border:'1px solid var(--border)', padding:'4px 8px' }}>
+                      <input
+                        value={sec}
+                        onChange={e => updateSection(ci, si, e.target.value)}
+                        placeholder="A"
+                        style={{ width:48, border:'none', outline:'none', background:'transparent', fontSize:13, fontWeight:700, color:'var(--blue)', textAlign:'center', fontFamily:'inherit' }}
+                      />
+                      {cls.sections.length > 1 && (
+                        <button onClick={() => removeSection(ci, si)}
+                          style={{ border:'none', background:'transparent', color:'var(--red)', cursor:'pointer', fontSize:12, padding:0, lineHeight:1 }}>✕</button>
+                      )}
+                    </div>
+                  ))}
+                  <button onClick={() => addSection(ci)}
+                    style={{ padding:'4px 10px', borderRadius:6, border:'1.5px dashed var(--border2)', background:'transparent', color:'var(--ink3)', cursor:'pointer', fontSize:12, fontWeight:600 }}>
+                    + Section
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <p style={{ fontSize:11, color:'var(--ink3)', marginTop:8 }}>
+        💡 Students will see these as dropdowns in the form. Class → Section auto-filters.
+      </p>
+    </div>
+  )
+}
 /* ── Main Component ───────────────────────────────────────────── */
 export default function Organizations() {
   const { organizations, loading, createOrganization, updateOrganization, deleteOrganization } = useOrganizations()
@@ -306,7 +398,11 @@ export default function Organizations() {
   const openEdit = org => {
     setViewOrg(null)
     setEditOrg(org)
-    setForm({ name:org.name||'', type:org.type||'School', address:org.address||'', contact:org.contact||'', email:org.email||'', website:org.website||'' })
+    setForm({ 
+      name:org.name||'', type:org.type||'School', address:org.address||'', 
+      contact:org.contact||'', email:org.email||'', website:org.website||'',
+      classes_config: org.classes_config || [] 
+    })
     setErrors({}); setLogoFile(null); setLogoPreview(org.logo_url||null); setLogoRemoved(false)
     setView('edit')
   }
@@ -403,6 +499,17 @@ export default function Organizations() {
                 </div>
               )}
             </div>
+
+
+            {/* Classes & Sections — only for School / College */}
+            {CLASS_SECTIONS_APPLICABLE.includes(form.type) && (
+              <div style={{ marginBottom:20 }}>
+                <ClassesConfig
+                  value={form.classes_config || []}
+                  onChange={val => set('classes_config', val)}
+                />
+              </div>
+            )}
 
             <div style={{ padding:'12px 14px', background:'var(--blue-s)', borderRadius:10, border:'1px solid rgba(35,82,255,.2)', fontSize:13, color:'var(--blue)', fontWeight:600, display:'flex', gap:10, alignItems:'flex-start' }}>
               <span style={{ fontSize:16, flexShrink:0 }}>💡</span>
