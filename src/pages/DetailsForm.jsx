@@ -343,6 +343,8 @@ useEffect(() => {
         const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 const orgRes = await fetch(`${BASE_URL}/organizations/public?name=${encodeURIComponent(res.data.school_name)}`)     
         const orgJson = await orgRes.json()
+        console.log('ORG FETCH:', orgJson)
+console.log('classes_config:', orgJson.data?.[0]?.classes_config)
         const org = orgJson.data?.[0]
         if (org?.classes_config) setOrgClassesConfig(org.classes_config)
       } catch { /* silently ignore — fallback to text input */ }
