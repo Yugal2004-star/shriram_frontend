@@ -1,21 +1,21 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
-import { AuthProvider, useAuth }               from './hooks/useAuth'
-import { SubmissionsProvider }                 from './hooks/useSubmissions'
-import { FormConfigsProvider }                 from './hooks/useFormConfigs'
-import { OrganizationsProvider }               from './hooks/useOrganizations'
-import { CardTemplatesProvider }               from './hooks/useCardTemplates'
-import Navbar         from './components/Navbar'
-import Home           from './pages/Home'
-import Dashboard      from './pages/Dashboard'
-import AddTemplate    from './pages/AddTemplate'
-import DetailsForm    from './pages/DetailsForm'
-import Admin          from './pages/Admin'
-import AllTemplates   from './pages/AllTemplates'
-import Organizations  from './pages/Organizations'
-import IDCardBuilder  from './pages/IDCardBuilder'
-import Success        from './pages/Success'
-import About          from './pages/About'
+import { AuthProvider, useAuth }               from './hooks/useAuth.jsx'
+import { SubmissionsProvider }                 from './hooks/useSubmissions.jsx'
+import { FormConfigsProvider }                 from './hooks/useFormConfigs.jsx'
+import { OrganizationsProvider }               from './hooks/useOrganizations.jsx'
+import { CardTemplatesProvider }               from './hooks/useCardtemplates.jsx'
+import Navbar         from './components/Navbar.jsx'
+import Home           from './pages/Home.jsx'
+import Dashboard      from './pages/Dashboard.jsx'
+import AddTemplate    from './pages/AddTemplate.jsx'
+import DetailsForm    from './pages/DetailsForm.jsx'
+import Admin          from './pages/Admin.jsx'
+import AllTemplates   from './pages/AllTemplates.jsx'
+import Organizations  from './pages/Organizations.jsx'
+import IDCardBuilder  from './pages/Idcardbuilder.jsx'
+import Success        from './pages/Success.jsx'
+import About          from './pages/About.jsx'
 
 function Protected({ children }) {
   const { user, loading } = useAuth()
@@ -25,12 +25,9 @@ function Protected({ children }) {
 
 function AppRoutes() {
   const { user } = useAuth()
-  /* Hide navbar on public form routes — students don't need admin nav */
-  const { pathname } = useLocation()
-  const showNav = !pathname.startsWith('/form/') && pathname !== '/success'
   return (
     <>
-      {showNav && <Navbar />}
+      <Navbar />
       <Routes>
         <Route path="/"              element={user ? <Navigate to="/dashboard" replace /> : <Home />} />
         <Route path="/form/:urlId"   element={<DetailsForm />} />
