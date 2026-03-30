@@ -319,15 +319,15 @@ export default function DetailsForm() {
   const [submitting,   setSubmitting]   = useState(false)
   const fileRef = useRef()
 
-  useEffect(() => {
-    if (!urlId) { setNotFound(true); setConfigLoad(false); return }
-    let cancelled=false
-    formConfigsApi.getByUrlId(urlId)
-      .then(res  => { if(!cancelled) setConfig(res.data) })
-      .catch(()  => { if(!cancelled) setNotFound(true) })
-      .finally(() => { if(!cancelled) setConfigLoad(false) })
-    return () => { cancelled=true }
-  }, [urlId])
+  // useEffect(() => {
+  //   if (!urlId) { setNotFound(true); setConfigLoad(false); return }
+  //   let cancelled=false
+  //   formConfigsApi.getByUrlId(urlId)
+  //     .then(res  => { if(!cancelled) setConfig(res.data) })
+  //     .catch(()  => { if(!cancelled) setNotFound(true) })
+  //     .finally(() => { if(!cancelled) setConfigLoad(false) })
+  //   return () => { cancelled=true }
+  // }, [urlId])
 
   const [orgClassesConfig, setOrgClassesConfig] = useState([])
 
@@ -341,7 +341,7 @@ useEffect(() => {
       // Fetch org classes_config by school name
       try {
         const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
-        const orgRes = await fetch(`${BASE_URL}/organizations?name=${encodeURIComponent(res.data.school_name)}`)
+const orgRes = await fetch(`${BASE_URL}/organizations/public?name=${encodeURIComponent(res.data.school_name)}`)     
         const orgJson = await orgRes.json()
         const org = orgJson.data?.[0]
         if (org?.classes_config) setOrgClassesConfig(org.classes_config)
