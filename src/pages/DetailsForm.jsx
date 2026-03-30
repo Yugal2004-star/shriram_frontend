@@ -368,7 +368,7 @@ export default function DetailsForm() {
   const dataFields = config.fields.filter(f => f!=='UploadYourPhoto')
 
   return (
-    <div style={{ minHeight:'100vh', background:'linear-gradient(150deg,#f0f4ff 0%,#eef0f8 50%,#f5f6fc 100%)', padding:'72px 12px 48px' }}>
+    <div style={{ minHeight:'100vh', background:'linear-gradient(150deg,#f0f4ff 0%,#eef0f8 50%,#f5f6fc 100%)', padding:'24px 12px 48px' }}>
       <style>{`
         .df-wrap { max-width: 700px; margin: 0 auto; }
         .df-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
