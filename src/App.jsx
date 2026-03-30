@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth }               from './hooks/useAuth.jsx'
 import { SubmissionsProvider }                 from './hooks/useSubmissions.jsx'
@@ -29,9 +29,9 @@ function AppRoutes() {
   const hideNavbar = pathname.startsWith('/form/') || pathname === '/success'
   return (
     <>
-          {!hideNavbar && <Navbar />}
+      {!hideNavbar && <Navbar />}
 
-      <Navbar />
+      {/* <Navbar /> */}
       <Routes>
         <Route path="/"              element={user ? <Navigate to="/dashboard" replace /> : <Home />} />
         <Route path="/form/:urlId"   element={<DetailsForm />} />
