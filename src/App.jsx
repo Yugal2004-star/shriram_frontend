@@ -25,8 +25,12 @@ function Protected({ children }) {
 
 function AppRoutes() {
   const { user } = useAuth()
+  const { pathname } = useLocation()
+  const hideNavbar = pathname.startsWith('/form/') || pathname === '/success'
   return (
     <>
+          {!hideNavbar && <Navbar />}
+
       <Navbar />
       <Routes>
         <Route path="/"              element={user ? <Navigate to="/dashboard" replace /> : <Home />} />
