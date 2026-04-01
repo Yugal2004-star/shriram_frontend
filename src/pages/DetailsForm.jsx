@@ -81,12 +81,10 @@ function CropModal({ open, imageUrl, onDone, onClose }) {
 
   useEffect(()=>{ if(!open) return; setMode(null); setLoaded(false); setAutoResult(null); setImgSize({w:1,h:1}) },[open,imageUrl])
 
-  // Only initialise crop once the modal container has real pixel dimensions
   const initCrop=useCallback(()=>{
     if(!imgRef.current) return
     const r=imgRef.current.getBoundingClientRect()
     const iw=r.width, ih=r.height
-    // Guard: if modal hasn't finished rendering yet, dimensions will be 0 — retry
     if(iw<10||ih<10){ setTimeout(initCrop,60); return }
     setImgSize({w:iw,h:ih})
     const cw=Math.round(iw*.65), ch=Math.round(cw/ASPECT)
@@ -94,7 +92,6 @@ function CropModal({ open, imageUrl, onDone, onClose }) {
     setLoaded(true)
   },[])
 
-  // img onLoad — image element ready; actual crop sizing is deferred to initCrop
   const onImgLoad=useCallback(()=>{ /* intentionally empty — sizing handled by pickCustom->initCrop */ },[])
 
   const pickAuto=async()=>{ setMode('auto'); if(!autoResult){ const r=await autoCropImage(imageUrl); setAutoResult(r) } }
@@ -102,7 +99,6 @@ function CropModal({ open, imageUrl, onDone, onClose }) {
 
   const clamp=useCallback((box)=>{
     let{x,y,w,h}=box
-    // Defensive guard: never let imgSize be 0 (causes collapsed crop / blank screen crash)
     const maxW=Math.max(imgSize.w,1), maxH=Math.max(imgSize.h,1)
     w=Math.max(MIN_W,Math.min(w,maxW)); h=Math.round(w/ASPECT)
     if(h>maxH){h=maxH;w=Math.round(h*ASPECT)}
@@ -319,40 +315,29 @@ export default function DetailsForm() {
   const [submitting,   setSubmitting]   = useState(false)
   const fileRef = useRef()
 
-  // useEffect(() => {
-  //   if (!urlId) { setNotFound(true); setConfigLoad(false); return }
-  //   let cancelled=false
-  //   formConfigsApi.getByUrlId(urlId)
-  //     .then(res  => { if(!cancelled) setConfig(res.data) })
-  //     .catch(()  => { if(!cancelled) setNotFound(true) })
-  //     .finally(() => { if(!cancelled) setConfigLoad(false) })
-  //   return () => { cancelled=true }
-  // }, [urlId])
-
   const [orgClassesConfig, setOrgClassesConfig] = useState([])
 
-useEffect(() => {
-  if (!urlId) { setNotFound(true); setConfigLoad(false); return }
-  let cancelled = false
-  formConfigsApi.getByUrlId(urlId)
-    .then(async res => {
-      if (cancelled) return
-      setConfig(res.data)
-      // Fetch org classes_config by school name
-      try {
-        const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
-const orgRes = await fetch(`${BASE_URL}/organizations/public?name=${encodeURIComponent(res.data.school_name)}`)     
-        const orgJson = await orgRes.json()
-        console.log('ORG FETCH:', orgJson)
-console.log('classes_config:', orgJson.data?.[0]?.classes_config)
-        const org = orgJson.data?.[0]
-        if (org?.classes_config) setOrgClassesConfig(org.classes_config)
-      } catch { /* silently ignore — fallback to text input */ }
-    })
-    .catch(() => { if (!cancelled) setNotFound(true) })
-    .finally(() => { if (!cancelled) setConfigLoad(false) })
-  return () => { cancelled = true }
-}, [urlId])
+  useEffect(() => {
+    if (!urlId) { setNotFound(true); setConfigLoad(false); return }
+    let cancelled = false
+    formConfigsApi.getByUrlId(urlId)
+      .then(async res => {
+        if (cancelled) return
+        setConfig(res.data)
+        try {
+          const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+          const orgRes = await fetch(`${BASE_URL}/organizations/public?name=${encodeURIComponent(res.data.school_name)}`)
+          const orgJson = await orgRes.json()
+          console.log('ORG FETCH:', orgJson)
+          console.log('classes_config:', orgJson.data?.[0]?.classes_config)
+          const org = orgJson.data?.[0]
+          if (org?.classes_config) setOrgClassesConfig(org.classes_config)
+        } catch { /* silently ignore — fallback to text input */ }
+      })
+      .catch(() => { if (!cancelled) setNotFound(true) })
+      .finally(() => { if (!cancelled) setConfigLoad(false) })
+    return () => { cancelled = true }
+  }, [urlId])
 
   const schoolName = config?.school_name ?? ''
   const hasPhoto   = config?.fields?.includes('UploadYourPhoto') ?? false
@@ -398,7 +383,6 @@ console.log('classes_config:', orgJson.data?.[0]?.classes_config)
   const handleSubmitClick = () => {
     if(!validateAll()){
       toast.error('Please fix the errors before submitting')
-      /* Scroll to first error */
       setTimeout(()=>{
         const el = document.querySelector('[data-has-error="true"]')
         el?.scrollIntoView({ behavior:'smooth', block:'center' })
@@ -484,9 +468,35 @@ console.log('classes_config:', orgJson.data?.[0]?.classes_config)
 
           <div style={{ padding:'20px' }}>
 
-            {/* ── Photo upload (if enabled) — at top so it's prominent ── */}
+            {/* ── All data fields in one grid ── */}
+            <div className="df-grid">
+              {dataFields.map(f => (
+                <div key={f} data-has-error={Boolean(errors[f]) ? 'true' : 'false'}>
+                  <RenderField f={f} formData={formData} errors={errors} update={update} orgClassesConfig={orgClassesConfig} />
+                </div>
+              ))}
+            </div>
+
+            {/* ── Declaration checkbox ── */}
+            <div style={{ marginTop:24, paddingTop:20, borderTop:'1px solid var(--border)' }}>
+              <div
+                style={{ background:accepted?'var(--teal-s)':'var(--paper2)', borderRadius:'var(--r)', padding:'14px 16px', border:`1.5px solid ${accepted?'#00c48c':'var(--border)'}`, marginBottom:4, transition:'all .2s', cursor:'pointer' }}
+                onClick={()=>setAccepted(a=>!a)}>
+                <label style={{ display:'flex',alignItems:'flex-start',gap:12,cursor:'pointer' }}>
+                  <div style={{ width:20,height:20,borderRadius:5,border:`2px solid ${accepted?'#00c48c':'var(--border2)'}`,background:accepted?'#00c48c':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:1,transition:'all .15s' }}>
+                    {accepted&&<span style={{ color:'#fff',fontSize:12,fontWeight:900 }}>✓</span>}
+                  </div>
+                  <span style={{ fontSize:13,color:'var(--ink2)',lineHeight:1.6,fontWeight:500,pointerEvents:'none' }}>
+                    I hereby declare that all information provided above is <strong>true and correct</strong>. I accept responsibility for any false information submitted.
+                  </span>
+                </label>
+              </div>
+              {errors.accept&&<p data-has-error="true" style={{ fontSize:12,color:'var(--red)',marginTop:4,fontWeight:600 }}>{errors.accept}</p>}
+            </div>
+
+            {/* ── Photo upload (if enabled) — at bottom ── */}
             {hasPhoto && (
-              <div style={{ marginBottom:24, paddingBottom:24, borderBottom:'1px solid var(--border)' }}>
+              <div style={{ marginTop:24, paddingTop:24, borderTop:'1px solid var(--border)' }}>
                 <div style={{ fontSize:11,fontWeight:700,color:'var(--ink3)',textTransform:'uppercase',letterSpacing:.5,marginBottom:10 }}>📷 Profile Photo *</div>
                 {!photoCropped ? (
                   <div onClick={()=>fileRef.current?.click()}
@@ -519,32 +529,6 @@ console.log('classes_config:', orgJson.data?.[0]?.classes_config)
                 {errors.photo && <p data-has-error="true" style={{ fontSize:12,color:'var(--red)',marginTop:6,fontWeight:600 }}>{errors.photo}</p>}
               </div>
             )}
-
-            {/* ── All data fields in one grid ── */}
-            <div className="df-grid">
-            {dataFields.map(f => (
-              <div key={f} data-has-error={Boolean(errors[f]) ? 'true' : 'false'}>
-                <RenderField f={f} formData={formData} errors={errors} update={update} orgClassesConfig={orgClassesConfig} />
-              </div>
-            ))}
-            </div>
-
-            {/* ── Declaration checkbox ── */}
-            <div style={{ marginTop:24, paddingTop:20, borderTop:'1px solid var(--border)' }}>
-              <div
-                style={{ background:accepted?'var(--teal-s)':'var(--paper2)', borderRadius:'var(--r)', padding:'14px 16px', border:`1.5px solid ${accepted?'#00c48c':'var(--border)'}`, marginBottom:4, transition:'all .2s', cursor:'pointer' }}
-                onClick={()=>setAccepted(a=>!a)}>
-                <label style={{ display:'flex',alignItems:'flex-start',gap:12,cursor:'pointer' }}>
-                  <div style={{ width:20,height:20,borderRadius:5,border:`2px solid ${accepted?'#00c48c':'var(--border2)'}`,background:accepted?'#00c48c':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:1,transition:'all .15s' }}>
-                    {accepted&&<span style={{ color:'#fff',fontSize:12,fontWeight:900 }}>✓</span>}
-                  </div>
-                  <span style={{ fontSize:13,color:'var(--ink2)',lineHeight:1.6,fontWeight:500,pointerEvents:'none' }}>
-                    I hereby declare that all information provided above is <strong>true and correct</strong>. I accept responsibility for any false information submitted.
-                  </span>
-                </label>
-              </div>
-              {errors.accept&&<p data-has-error="true" style={{ fontSize:12,color:'var(--red)',marginTop:4,fontWeight:600 }}>{errors.accept}</p>}
-            </div>
 
             {/* ── Submit button ── */}
             <div style={{ marginTop:20 }}>
