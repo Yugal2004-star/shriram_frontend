@@ -477,22 +477,6 @@ export default function DetailsForm() {
               ))}
             </div>
 
-            {/* ── Declaration checkbox ── */}
-            <div style={{ marginTop:24, paddingTop:20, borderTop:'1px solid var(--border)' }}>
-              <div
-                style={{ background:accepted?'var(--teal-s)':'var(--paper2)', borderRadius:'var(--r)', padding:'14px 16px', border:`1.5px solid ${accepted?'#00c48c':'var(--border)'}`, marginBottom:4, transition:'all .2s', cursor:'pointer' }}
-                onClick={()=>setAccepted(a=>!a)}>
-                <label style={{ display:'flex',alignItems:'flex-start',gap:12,cursor:'pointer' }}>
-                  <div style={{ width:20,height:20,borderRadius:5,border:`2px solid ${accepted?'#00c48c':'var(--border2)'}`,background:accepted?'#00c48c':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:1,transition:'all .15s' }}>
-                    {accepted&&<span style={{ color:'#fff',fontSize:12,fontWeight:900 }}>✓</span>}
-                  </div>
-                  <span style={{ fontSize:13,color:'var(--ink2)',lineHeight:1.6,fontWeight:500,pointerEvents:'none' }}>
-                    I hereby declare that all information provided above is <strong>true and correct</strong>. I accept responsibility for any false information submitted.
-                  </span>
-                </label>
-              </div>
-              {errors.accept&&<p data-has-error="true" style={{ fontSize:12,color:'var(--red)',marginTop:4,fontWeight:600 }}>{errors.accept}</p>}
-            </div>
 
             {/* ── Photo upload (if enabled) — at bottom ── */}
             {hasPhoto && (
@@ -529,6 +513,24 @@ export default function DetailsForm() {
                 {errors.photo && <p data-has-error="true" style={{ fontSize:12,color:'var(--red)',marginTop:6,fontWeight:600 }}>{errors.photo}</p>}
               </div>
             )}
+
+                        {/* ── Declaration checkbox ── */}
+            <div style={{ marginTop:24, paddingTop:20, borderTop:'1px solid var(--border)' }}>
+              <div
+                style={{ background:accepted?'var(--teal-s)':'var(--paper2)', borderRadius:'var(--r)', padding:'14px 16px', border:`1.5px solid ${accepted?'#00c48c':'var(--border)'}`, marginBottom:4, transition:'all .2s', cursor:'pointer' }}
+                onClick={()=>setAccepted(a=>!a)}>
+                <label style={{ display:'flex',alignItems:'flex-start',gap:12,cursor:'pointer' }}>
+                  <div style={{ width:20,height:20,borderRadius:5,border:`2px solid ${accepted?'#00c48c':'var(--border2)'}`,background:accepted?'#00c48c':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:1,transition:'all .15s' }}>
+                    {accepted&&<span style={{ color:'#fff',fontSize:12,fontWeight:900 }}>✓</span>}
+                  </div>
+                  <span style={{ fontSize:13,color:'var(--ink2)',lineHeight:1.6,fontWeight:500,pointerEvents:'none' }}>
+                    I hereby declare that all information provided above is <strong>true and correct</strong>. I accept responsibility for any false information submitted.
+                  </span>
+                </label>
+              </div>
+              {errors.accept&&<p data-has-error="true" style={{ fontSize:12,color:'var(--red)',marginTop:4,fontWeight:600 }}>{errors.accept}</p>}
+            </div>
+
 
             {/* ── Submit button ── */}
             <div style={{ marginTop:20 }}>
