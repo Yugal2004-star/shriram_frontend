@@ -89,26 +89,6 @@ export default function Success() {
           </div>
         </Card>
 
-        {/* ── What happens next ── */}
-        <Card style={{ padding:20, marginTop:14 }}>
-          <h3 style={{ fontFamily:'Outfit,sans-serif', fontSize:15, fontWeight:800, color:'var(--ink)', marginBottom:14 }}>What happens next?</h3>
-          <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-            {[
-              ['✅', 'Your form is submitted', 'The school admin has received your details.'],
-              ['🔍', 'Admin reviews your details', 'They will verify and approve your submission.'],
-              ['🪪', 'ID card is generated', 'Your ID card will be created once approved.'],
-              ['📬', 'You will be notified', 'Contact your school to collect your ID card.'],
-            ].map(([icon, title, desc]) => (
-              <div key={title} style={{ display:'flex', gap:12, alignItems:'flex-start', padding:'10px 12px', borderRadius:'var(--r)', background:'var(--paper2)', border:'1px solid var(--border)' }}>
-                <span style={{ fontSize:18, flexShrink:0 }}>{icon}</span>
-                <div>
-                  <div style={{ fontSize:13, fontWeight:700, color:'var(--ink)' }}>{title}</div>
-                  <div style={{ fontSize:12, color:'var(--ink3)', marginTop:1 }}>{desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
 
       </div>
     </div>

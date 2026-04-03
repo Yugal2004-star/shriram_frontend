@@ -40,9 +40,10 @@ export function SubmissionsProvider({ children }) {
     try {
       const res = await submissionsApi.list(params)
       setSubmissions(res.data || [])
+      const [error, setError] = useState(null)
     } catch (err) {
-      toast.error('Failed to load submissions')
-      console.error(err)
+      setError(err.message)
+  toast.error('Failed to load submissions')
     } finally { setLoading(false) }
   }, [])
 
