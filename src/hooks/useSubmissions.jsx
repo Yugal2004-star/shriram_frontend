@@ -37,12 +37,12 @@ export function SubmissionsProvider({ children }) {
   /* Fetch ONCE on app mount ─────────────────────────────────── */
   const fetchSubmissions = useCallback(async (params = {}) => {
     setLoading(true)
-     const [err, setError] = useState(null)
     try {
       const res = await submissionsApi.list(params)
       setSubmissions(res.data || [])
-      const [error, setError] = useState(null)
+     
     } catch (err) {
+       const [error, setError] = useState(null)
       setError(err.message)
   toast.error('Failed to load submissions')
     } finally { setLoading(false) }
